@@ -2,13 +2,13 @@
 
 ## Phase 0: Repository & Project Preparation
 
-- [ ] GitHub / Git Management Setup
-- [ ] Monorepo Structure Consideration (e.g., turbo repo)
+- [x] GitHub / Git Management Setup
+- [x] Monorepo Structure Consideration (e.g., turbo repo)
   - `apps/web` (Next.js)
   - `apps/mobile` (React Native)
   - `apps/unity` (Unity Project can be separate)
   - `packages/shared` (For sharing types/domain logic) _If spare time_
-- [ ] Common Coding Style (ESLint / Prettier / TypeScript Settings)
+- [x] Common Coding Style (ESLint / Prettier / TypeScript Settings)
 
 ---
 

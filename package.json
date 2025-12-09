@@ -1,5 +1,5 @@
 {
-  "name": "temp_turbo",
+  "name": "sala-3d-gemini",
   "private": true,
   "scripts": {
     "build": "turbo run build",
