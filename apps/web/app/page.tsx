@@ -1,101 +1,45 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
-
+export default function LandingPage() {
   return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-indigo-900 to-slate-900 p-4 text-white">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+      
+      <main className="z-10 flex max-w-3xl flex-col items-center text-center">
+        <h1 className="mb-4 text-5xl font-extrabold tracking-tight sm:text-7xl">
+          Sala 3D <span className="text-indigo-400">Gemini</span>
+        </h1>
+        <p className="mb-8 text-lg text-slate-300 sm:text-xl">
+          Experience the next generation of AI companionship with full 3D presence.
+          Engage in meaningful conversations with a personality that evolves with you.
+        </p>
 
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.com/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+        <div className="flex gap-4">
+          <Link href="/login">
+            <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700">
+              Get Started
+            </Button>
+          </Link>
+          <Link href="/about">
+            <Button variant="outline" size="lg" className="border-indigo-400 text-indigo-100 hover:bg-indigo-900/50 hover:text-white">
+              Learn More
+            </Button>
+          </Link>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
+        
+        {/* Placeholder for 3D Preview (Image or Video could go here) */}
+        <div className="mt-12 h-64 w-full max-w-lg rounded-lg border border-indigo-500/30 bg-indigo-950/50 shadow-2xl backdrop-blur-sm lg:h-96">
+            <div className="flex h-full items-center justify-center text-indigo-400/50">
+                3D Preview Component
+            </div>
+        </div>
       </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.com?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.com →
-        </a>
+
+      <footer className="z-10 mt-20 text-sm text-slate-500">
+        © 2025 Sala 3D Project. Powered by Gemini & Unity.
       </footer>
     </div>
   );
