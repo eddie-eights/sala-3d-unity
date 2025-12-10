@@ -1,13 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Sparkles, Mic, MicOff, Minimize2, Maximize2, Home } from "lucide-react";
+import { Send, Sparkles, Mic, MicOff, Minimize2, Maximize2, Home, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner"; // Ensure sonner is installed/available
 
 export default function ChatPage() {
+  const router = useRouter();
+  const [isCheckingProfile, setIsCheckingProfile] = useState(true);
+  
+  useEffect(() => {
+    const checkProfile = async () => {
+        try {
+            const res = await fetch('/api/profile');
+            if (res.ok) {
+                const data = await res.json();
+                // Check for required fields: username and birthday
+                if (!data.username || !data.birthday) {
+                    toast.warning("Please complete your profile first.");
+                    router.push('/mypage');
+                } else {
+                    setIsCheckingProfile(false);
+                }
+            } else {
+                 // If auth fails/network error, usually middleware handles it, 
+                 // but let's be safe and stop loading to show content (or redirect login)
+                 // Assuming middleware handles 401.
+                 setIsCheckingProfile(false);
+            }
+        } catch (error) {
+            console.error("Profile check failed", error);
+            setIsCheckingProfile(false);
+        }
+    };
+    checkProfile();
+  }, [router]);
+
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
     { role: 'assistant', content: 'Hello! Welcome to your room. I am Sala.' }
   ]);
@@ -37,6 +69,15 @@ export default function ChatPage() {
             setIsRecording(true);
       }
   };
+
+  if (isCheckingProfile) {
+      return (
+          <div className="flex h-screen items-center justify-center bg-blue-50/50">
+              <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+              <span className="ml-3 text-blue-600 font-medium">Loading your space...</span>
+          </div>
+      );
+  }
 
   return (
     <div className="flex h-screen w-full bg-blue-50/50 overflow-hidden relative">

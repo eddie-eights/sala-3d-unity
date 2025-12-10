@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("login");
   const router = useRouter();
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -52,13 +53,14 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
       await authClient.signIn.social({ 
           provider: 'google',
-          callbackURL: '/mypage'
+          callbackURL: '/chat'
       });
   };
 
   const handlePasskeySignIn = async () => {
     try {
         await authClient.signIn.passkey();
+        router.push('/chat');
     } catch (e: any) {
         alert(e.message || "Failed to sign in with Passkey");
     }
@@ -84,7 +86,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-            <Tabs defaultValue="login" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 bg-blue-100/50">
                     <TabsTrigger value="login">Sign In</TabsTrigger>
                     <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -186,15 +188,17 @@ export default function LoginPage() {
                 </div>
             </div>
 
-{/* Passkey Login Enabled */}
-            <Button 
-                variant="outline" 
-                className="w-full border-blue-200 hover:bg-blue-50 text-blue-700 mb-2"
-                onClick={handlePasskeySignIn}
-            >
-                <Fingerprint className="mr-2 h-4 w-4" />
-                Sign in with Passkey
-            </Button>
+{/* Passkey Login Enabled - Only for Sign In */}
+            {activeTab === "login" && (
+                <Button 
+                    variant="outline" 
+                    className="w-full border-blue-200 hover:bg-blue-50 text-blue-700 mb-2"
+                    onClick={handlePasskeySignIn}
+                >
+                    <Fingerprint className="mr-2 h-4 w-4" />
+                    Sign in with Passkey
+                </Button>
+            )}
 
             <Button 
                 variant="outline" 
