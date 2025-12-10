@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
@@ -37,15 +37,10 @@ export default function SettingsPage() {
                 if (!res.ok) throw new Error("Failed to load profile");
                 const data = await res.json();
                 
-                // Format date for input type="date"
-                let formattedDob = "";
-                if (data.birthday) {
-                    formattedDob = new Date(data.birthday).toISOString().split('T')[0];
-                }
-
+                // Format date for input if needed, but we rely on split logic below
                 setFormData({
                     username: data.username || "",
-                    birthday: formattedDob,
+                    birthday: data.birthday ? new Date(data.birthday).toISOString().split('T')[0] : "",
                     gender: data.gender || "",
                     hometown: data.hometown || "",
                     currentResidence: data.currentResidence || "",
@@ -100,166 +95,185 @@ export default function SettingsPage() {
 
     if (loading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-950 text-slate-100">
+            <div className="flex h-screen items-center justify-center bg-blue-50 text-blue-600">
                 <Loader2 className="animate-spin h-8 w-8" />
             </div>
         );
     }
 
   return (
-    <div className="min-h-screen bg-slate-950 p-4 text-slate-100">
-        <div className="mx-auto max-w-2xl space-y-6">
+    <div className="min-h-screen bg-blue-50/50 p-4 relative overflow-hidden">
+         {/* Background Decoration */}
+         <div className="absolute top-[-20%] left-[-20%] h-[600px] w-[600px] rounded-full bg-blue-200/30 blur-[120px] pointer-events-none" />
+         <div className="absolute bottom-[-20%] right-[-20%] h-[600px] w-[600px] rounded-full bg-cyan-200/30 blur-[120px] pointer-events-none" />
+
+        <div className="relative z-10 mx-auto max-w-2xl space-y-6 pt-8">
             <div className="flex items-center gap-4">
                 <Link href="/chat">
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="hover:bg-white/50 text-blue-900 rounded-full">
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                 </Link>
-                <h1 className="text-3xl font-bold">Settings</h1>
+                <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                        <Sparkles className="h-4 w-4" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-blue-900">Your Profile</h1>
+                </div>
             </div>
 
             <form onSubmit={handleSubmit}>
-                <Card className="border-slate-800 bg-slate-900 text-slate-100">
+                <Card className="border-white/60 bg-white/60 backdrop-blur-xl shadow-xl transition-all duration-300">
                     <CardHeader>
-                        <CardTitle>Profile Information</CardTitle>
-                        <CardDescription>Update your personal details. Username and Birthday are required.</CardDescription>
+                        <CardTitle className="text-blue-900">Personal Details</CardTitle>
+                        <CardDescription className="text-blue-500/80">Customize your identity in Sala. Username and Birthday are required.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div className="space-y-2">
-                                <Label htmlFor="username">Username <span className="text-red-500">*</span></Label>
+                                <Label htmlFor="username" className="text-blue-800 font-medium">Username <span className="text-red-400">*</span></Label>
                                 <Input 
                                     id="username" 
                                     placeholder="unique_username" 
                                     value={formData.username}
                                     onChange={handleChange}
-                                    className="bg-slate-800 border-slate-700" 
+                                    className="bg-white/80 border-blue-100 focus:border-blue-400 focus:ring-blue-400/20 text-blue-900 placeholder:text-blue-300/70" 
                                     required
                                 />
-                                <p className="text-xs text-slate-400">Unique identifier.</p>
+                                <p className="text-xs text-blue-400/70">How others will see you.</p>
                             </div>
 
-                             <div className="space-y-2">
-                                <Label>Date of Birth <span className="text-red-500">*</span></Label>
+                             <div className="space-y-2 col-span-1 sm:col-span-2">
+                                <Label className="text-blue-800 font-medium">Date of Birth <span className="text-red-400">*</span></Label>
                                 <div className="flex gap-2">
                                     {/* Year */}
-                                    <select
-                                        id="dob-year"
-                                        className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-                                        value={formData.birthday ? new Date(formData.birthday).getFullYear() : ""}
-                                        onChange={(e) => {
-                                            const y = e.target.value;
-                                            const d = formData.birthday ? new Date(formData.birthday) : new Date();
-                                            const m = formData.birthday ? d.getMonth() + 1 : 1;
-                                            const day = formData.birthday ? d.getDate() : 1;
-                                            if (y) setFormData(prev => ({ ...prev, birthday: `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}` }));
-                                        }}
-                                        required
-                                    >
-                                        <option value="" disabled>Year</option>
-                                        {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                                            <option key={year} value={year}>{year}</option>
-                                        ))}
-                                    </select>
+                                    <div className="relative w-full">
+                                        <select
+                                            id="dob-year"
+                                            className="flex h-10 w-full appearance-none rounded-md border border-blue-100 bg-white/80 px-3 py-2 text-sm text-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/20 disabled:cursor-not-allowed disabled:opacity-50"
+                                            value={formData.birthday ? new Date(formData.birthday).getFullYear() : ""}
+                                            onChange={(e) => {
+                                                const y = e.target.value;
+                                                const d = formData.birthday ? new Date(formData.birthday) : new Date();
+                                                const m = formData.birthday ? d.getMonth() + 1 : 1;
+                                                const day = formData.birthday ? d.getDate() : 1;
+                                                if (y) setFormData(prev => ({ ...prev, birthday: `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}` }));
+                                            }}
+                                            required
+                                        >
+                                            <option value="" disabled>Year</option>
+                                            {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                                                <option key={year} value={year}>{year}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                     
                                     {/* Month */}
-                                    <select
-                                        id="dob-month"
-                                        className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-                                        value={formData.birthday ? new Date(formData.birthday).getMonth() + 1 : ""}
-                                        onChange={(e) => {
-                                            const m = e.target.value;
-                                            const d = formData.birthday ? new Date(formData.birthday) : new Date();
-                                            const y = formData.birthday ? d.getFullYear() : 2000;
-                                            const day = formData.birthday ? d.getDate() : 1;
-                                            if (m) setFormData(prev => ({ ...prev, birthday: `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}` }));
-                                        }}
-                                        required
-                                    >
-                                        <option value="" disabled>Month</option>
-                                        {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                                            <option key={month} value={month}>{month}</option>
-                                        ))}
-                                    </select>
+                                    <div className="relative w-full">
+                                        <select
+                                            id="dob-month"
+                                            className="flex h-10 w-full appearance-none rounded-md border border-blue-100 bg-white/80 px-3 py-2 text-sm text-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/20 disabled:cursor-not-allowed disabled:opacity-50"
+                                            value={formData.birthday ? new Date(formData.birthday).getMonth() + 1 : ""}
+                                            onChange={(e) => {
+                                                const m = e.target.value;
+                                                const d = formData.birthday ? new Date(formData.birthday) : new Date();
+                                                const y = formData.birthday ? d.getFullYear() : 2000;
+                                                const day = formData.birthday ? d.getDate() : 1;
+                                                if (m) setFormData(prev => ({ ...prev, birthday: `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}` }));
+                                            }}
+                                            required
+                                        >
+                                            <option value="" disabled>Month</option>
+                                            {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                                                <option key={month} value={month}>{month}</option>
+                                            ))}
+                                        </select>
+                                    </div>
 
                                     {/* Day */}
-                                    <select
-                                        id="dob-day"
-                                        className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
-                                        value={formData.birthday ? new Date(formData.birthday).getDate() : ""}
-                                        onChange={(e) => {
-                                            const day = e.target.value;
-                                            const d = formData.birthday ? new Date(formData.birthday) : new Date();
-                                            const y = formData.birthday ? d.getFullYear() : 2000;
-                                            const m = formData.birthday ? d.getMonth() + 1 : 1;
-                                            if (day) setFormData(prev => ({ ...prev, birthday: `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}` }));
-                                        }}
-                                        required
-                                    >
-                                        <option value="" disabled>Day</option>
-                                        {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
-                                            <option key={day} value={day}>{day}</option>
-                                        ))}
-                                    </select>
+                                    <div className="relative w-full">
+                                        <select
+                                            id="dob-day"
+                                            className="flex h-10 w-full appearance-none rounded-md border border-blue-100 bg-white/80 px-3 py-2 text-sm text-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/20 disabled:cursor-not-allowed disabled:opacity-50"
+                                            value={formData.birthday ? new Date(formData.birthday).getDate() : ""}
+                                            onChange={(e) => {
+                                                const day = e.target.value;
+                                                const d = formData.birthday ? new Date(formData.birthday) : new Date();
+                                                const y = formData.birthday ? d.getFullYear() : 2000;
+                                                const m = formData.birthday ? d.getMonth() + 1 : 1;
+                                                if (day) setFormData(prev => ({ ...prev, birthday: `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}` }));
+                                            }}
+                                            required
+                                        >
+                                            <option value="" disabled>Day</option>
+                                            {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                                                <option key={day} value={day}>{day}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
-                             <div className="space-y-2">
-                                <Label>Gender</Label>
+                             <div className="space-y-3 col-span-1 sm:col-span-2">
+                                <Label className="text-blue-800 font-medium">Gender</Label>
                                 <RadioGroup 
                                     value={formData.gender} 
                                     onValueChange={(val) => setFormData(prev => ({ ...prev, gender: val }))}
-                                    className="flex gap-4"
+                                    className="flex gap-4 p-4 rounded-lg bg-blue-50/50 border border-blue-100"
                                 >
                                     <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="male" id="gender-male" className="border-slate-400 text-blue-500" />
-                                        <Label htmlFor="gender-male" className="font-normal cursor-pointer">男性</Label>
+                                        <RadioGroupItem value="male" id="gender-male" className="border-blue-400 text-blue-500 aria-checked:border-blue-600" />
+                                        <Label htmlFor="gender-male" className="font-medium cursor-pointer text-blue-700">男性</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="female" id="gender-female" className="border-slate-400 text-pink-500" />
-                                        <Label htmlFor="gender-female" className="font-normal cursor-pointer">女性</Label>
+                                        <RadioGroupItem value="female" id="gender-female" className="border-pink-400 text-pink-500 aria-checked:border-pink-600" />
+                                        <Label htmlFor="gender-female" className="font-medium cursor-pointer text-pink-700">女性</Label>
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="no_answer" id="gender-none" className="border-slate-400 text-slate-400" />
-                                        <Label htmlFor="gender-none" className="font-normal cursor-pointer">無回答</Label>
+                                        <RadioGroupItem value="no_answer" id="gender-none" className="border-slate-400 text-slate-500" />
+                                        <Label htmlFor="gender-none" className="font-medium cursor-pointer text-slate-600">無回答</Label>
                                     </div>
                                 </RadioGroup>
                             </div>
+
                              <div className="space-y-2">
-                                <Label htmlFor="hometown">Hometown</Label>
+                                <Label htmlFor="hometown" className="text-blue-800 font-medium">Hometown</Label>
                                 <Input 
                                     id="hometown" 
                                     placeholder="Tokyo, Japan" 
                                     value={formData.hometown}
                                     onChange={handleChange}
-                                    className="bg-slate-800 border-slate-700" 
+                                    className="bg-white/80 border-blue-100 focus:border-blue-400 focus:ring-blue-400/20 text-blue-900 placeholder:text-blue-300/70" 
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="currentResidence">Current Residence</Label>
+                                <Label htmlFor="currentResidence" className="text-blue-800 font-medium">Current Residence</Label>
                                 <Input 
                                     id="currentResidence" 
                                     placeholder="New York, USA" 
                                     value={formData.currentResidence}
                                     onChange={handleChange}
-                                    className="bg-slate-800 border-slate-700" 
+                                    className="bg-white/80 border-blue-100 focus:border-blue-400 focus:ring-blue-400/20 text-blue-900 placeholder:text-blue-300/70" 
                                 />
                             </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="hobbies">Hobbies</Label>
+                             <div className="space-y-2 col-span-1 sm:col-span-2">
+                                <Label htmlFor="hobbies" className="text-blue-800 font-medium">Hobbies</Label>
                                 <Input 
                                     id="hobbies" 
                                     placeholder="Reading, Coding, etc." 
                                     value={formData.hobbies}
                                     onChange={handleChange}
-                                    className="bg-slate-800 border-slate-700" 
+                                    className="bg-white/80 border-blue-100 focus:border-blue-400 focus:ring-blue-400/20 text-blue-900 placeholder:text-blue-300/70" 
                                 />
                             </div>
                         </div>
-                        {error && <p className="text-sm text-red-500">{error}</p>}
-                        <Button type="submit" disabled={saving}>
-                            {saving ? "Saving..." : "Save Profile"}
-                        </Button>
+                        {error && <p className="text-sm text-red-500 font-medium bg-red-50 p-2 rounded">{error}</p>}
+                        
+                        <div className="pt-4">
+                            <Button type="submit" disabled={saving} className="w-full bg-gradient-to-r from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-200/50 transition-all hover:scale-[1.02] font-semibold h-11">
+                                {saving ? "Saving Changes..." : "Save Profile"}
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
             </form>
