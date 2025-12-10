@@ -63,7 +63,7 @@ export default function ChatPage() {
       <div className={`
         flex flex-col z-20 transition-all duration-500 ease-in-out border-white/40 bg-white/60 backdrop-blur-xl shadow-xl
         ${isFloating 
-            ? 'absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[600px] rounded-2xl border' 
+            ? 'absolute bottom-6 right-6 w-[400px] rounded-2xl border' 
             : 'w-[350px] border-l h-full'
         }
       `}>
