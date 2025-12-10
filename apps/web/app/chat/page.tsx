@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Sparkles, Mic, MicOff, Minimize2, Maximize2 } from "lucide-react";
+import { Send, Sparkles, Mic, MicOff, Minimize2, Maximize2, Home } from "lucide-react";
+import Link from "next/link";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
@@ -80,9 +81,14 @@ export default function ChatPage() {
             </div>
         )}
 
-        {/* Floating Toggle Button (When Floating) - Positioned absolutely above the input or integrated */}
+        {/* Floating Controls (When Floating) */}
         {isFloating && (
-            <div className="absolute -top-10 right-0">
+            <div className="absolute -top-10 right-0 flex gap-2">
+                 <Link href="/settings">
+                    <Button variant="secondary" size="icon" className="rounded-full h-8 w-8 bg-white/80 backdrop-blur border border-white/50 shadow-sm hover:bg-white">
+                        <Home className="h-4 w-4 text-blue-600" />
+                    </Button>
+                 </Link>
                  <Button variant="secondary" size="icon" onClick={() => setIsFloating(false)} className="rounded-full h-8 w-8 bg-white/80 backdrop-blur border border-white/50 shadow-sm hover:bg-white">
                     <Maximize2 className="h-4 w-4 text-blue-600" />
                 </Button>
