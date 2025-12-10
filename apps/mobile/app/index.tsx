@@ -5,34 +5,34 @@ import { StatusBar } from 'expo-status-bar';
 
 export default function LandingScreen() {
   return (
-    <View className="flex-1 items-center justify-center bg-blue-50 relative overflow-hidden">
+    <View className="flex-1 bg-blue-50 relative overflow-hidden">
         <StatusBar style="dark" />
-        {/* Background Blobs */}
-        <View className="absolute top-[-50] left-[-50] h-64 w-64 rounded-full bg-blue-200 opacity-40 blur-3xl" />
-        <View className="absolute bottom-[-50] right-[-50] h-64 w-64 rounded-full bg-cyan-200 opacity-40 blur-3xl" />
+        
+        {/* Background Gradients */}
+        <View className="absolute top-[-20%] left-[-20%] h-[50%] w-[50%] rounded-full bg-blue-200 opacity-30 blur-[100px]" />
+        <View className="absolute bottom-[-20%] right-[-20%] h-[50%] w-[50%] rounded-full bg-cyan-200 opacity-30 blur-[100px]" />
 
-        {/* 3D Placeholder */}
-        <View className="flex-1 items-center justify-center w-full">
-            <View className="h-64 w-64 rounded-full bg-blue-100 flex items-center justify-center shadow-inner">
-                <Text className="text-blue-300 font-bold text-lg">3D MODEL HERE</Text>
+        {/* 3D Placeholder (Center) */}
+        <View className="flex-1 items-center justify-center">
+            <View className="h-64 w-64 rounded-full bg-white/20 border border-white/40 flex items-center justify-center backdrop-blur-sm">
+                <Text className="text-blue-400 font-semibold tracking-widest text-sm">LOADING 3D MODEL...</Text>
             </View>
         </View>
 
-        {/* Door Button */}
-        <View className="mb-20 items-center">
+        {/* Door Button (Bottom Right) */}
+        <View className="absolute bottom-12 right-8">
             <Link href="/login" asChild>
-                <TouchableOpacity className="items-center justify-center">
-                    <View className="h-48 w-32 rounded-t-full border-4 border-white bg-white/40 shadow-xl flex items-center justify-center overflow-hidden backdrop-blur-md">
-                        <View className="h-full w-full border-2 border-dashed border-white/60 rounded-t-full flex items-center justify-center">
-                             <Text className="text-xl font-bold text-blue-600/80">ENTER</Text>
-                        </View>
+                <TouchableOpacity className="items-center justify-center group active:scale-95 transition-transform">
+                    <View className="h-24 w-16 bg-white rounded-t-full border-4 border-white shadow-lg overflow-hidden flex items-center justify-end pb-2">
+                         <View className="h-[90%] w-[80%] bg-blue-100/50 rounded-t-full border border-blue-200" />
+                         <View className="absolute top-[50%] right-2 h-2 w-2 bg-yellow-400 rounded-full shadow-sm" />
                     </View>
-                    <View className="mt-4 h-2 w-24 bg-blue-900/10 rounded-full blur-sm" />
+                    <Text className="mt-2 text-blue-400 text-xs font-bold tracking-widest text-center">ENTER</Text>
                 </TouchableOpacity>
             </Link>
         </View>
         
-        <Text className="absolute bottom-6 text-blue-300 text-xs">Sala 3D Mobile</Text>
+        <Text className="absolute bottom-6 left-6 text-blue-300/50 text-[10px] tracking-tighter">SALA MOBILE v0.1</Text>
     </View>
   );
 }
