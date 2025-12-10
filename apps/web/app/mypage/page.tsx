@@ -19,26 +19,26 @@ export default function MyPage() {
     const [hasPasskey, setHasPasskey] = useState(true); // Default true to prevent flash
 
     useEffect(() => {
-        // authClient.passkey.listPasskeys().then((res: any) => {
-        //     if (res.data && res.data.length > 0) {
-        //         setHasPasskey(true);
-        //     } else {
-        //         setHasPasskey(false);
-        //     }
-        // }).catch(() => {});
+        authClient.passkey.listUserPasskeys().then((res: any) => {
+            if (res.data && res.data.length > 0) {
+                setHasPasskey(true);
+            } else {
+                setHasPasskey(false);
+            }
+        }).catch(() => {});
     }, []);
 
     const handleAddPasskey = async () => {
-        // const res = await authClient.passkey.addPasskey({
-        //     name: "My Passkey",
-        // });
-        // if (res?.data) {
-        //      setHasPasskey(true);
-        //      toast.success("Passkey registered successfully!");
-        // } else if (res?.error) {
-        //      toast.error(res.error.message);
-        // }
-        toast.info("Passkey registration is temporarily disabled.");
+        const res = await authClient.passkey.addPasskey({
+            name: "My Passkey",
+        });
+        if (res?.data) {
+             setHasPasskey(true);
+             toast.success("Passkey registered successfully!");
+        } else if (res?.error) {
+             toast.error(res.error.message);
+        }
+        // toast.info("Passkey registration is temporarily disabled.");
     };
 
     const [formData, setFormData] = useState({
@@ -195,7 +195,7 @@ export default function MyPage() {
                 </Button>
             </div>
 
-            {/* {!hasPasskey && !loading && (
+            {!hasPasskey && !loading && (
                 <Card className="bg-blue-50/50 border-blue-200">
                     <CardContent className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -212,7 +212,7 @@ export default function MyPage() {
                         </Button>
                     </CardContent>
                 </Card>
-            )} */}
+            )}
 
             <form onSubmit={handleSubmit}>
                 <Card className="border-white/60 bg-white/60 backdrop-blur-xl shadow-xl transition-all duration-300">
@@ -223,13 +223,7 @@ export default function MyPage() {
                     <CardContent className="space-y-6">
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                              {/* UserID Display */}
-                            <div className="space-y-2 col-span-1 sm:col-span-2">
-                                 <Label className="text-blue-800 font-medium">User ID</Label>
-                                 <div className="p-2 rounded bg-blue-50/50 border border-blue-100 text-sm font-mono text-blue-600 select-all">
-                                     {formData.id || "Loading..."}
-                                 </div>
-                                 <p className="text-[10px] text-blue-400">Unique ID for valid identification.</p>
-                            </div>
+{/* User ID hidden as requested */}
 
                             <div className="space-y-2">
                                 <Label htmlFor="username" className="text-blue-800 font-medium">Username (Display Name) <span className="text-red-400">*</span></Label>
