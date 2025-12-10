@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -203,15 +204,26 @@ export default function SettingsPage() {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="gender">Gender</Label>
-                                <Input 
-                                    id="gender" 
-                                    placeholder="e.g. Male, Female, Other" 
-                                    value={formData.gender}
-                                    onChange={handleChange}
-                                    className="bg-slate-800 border-slate-700" 
-                                />
+                             <div className="space-y-2">
+                                <Label>Gender</Label>
+                                <RadioGroup 
+                                    value={formData.gender} 
+                                    onValueChange={(val) => setFormData(prev => ({ ...prev, gender: val }))}
+                                    className="flex gap-4"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="male" id="gender-male" className="border-slate-400 text-blue-500" />
+                                        <Label htmlFor="gender-male" className="font-normal cursor-pointer">男性</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="female" id="gender-female" className="border-slate-400 text-pink-500" />
+                                        <Label htmlFor="gender-female" className="font-normal cursor-pointer">女性</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="no_answer" id="gender-none" className="border-slate-400 text-slate-400" />
+                                        <Label htmlFor="gender-none" className="font-normal cursor-pointer">無回答</Label>
+                                    </div>
+                                </RadioGroup>
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="hometown">Hometown</Label>
