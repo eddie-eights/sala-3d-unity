@@ -74,6 +74,11 @@ export default function ChatPage() {
                 <h2 className="font-bold text-blue-900">Chat with Sala</h2>
                 <div className="flex items-center gap-2">
                      <div className={`h-2 w-2 rounded-full ${isRecording ? 'bg-red-500 animate-ping' : 'bg-green-400'}`} />
+                     <Link href="/settings">
+                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full hover:bg-blue-100/50">
+                            <Home className="h-4 w-4 text-blue-500" />
+                        </Button>
+                     </Link>
                      <Button variant="ghost" size="icon" onClick={() => setIsFloating(true)} className="h-6 w-6 rounded-full hover:bg-blue-100/50">
                         <Minimize2 className="h-4 w-4 text-blue-500" />
                      </Button>
