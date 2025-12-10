@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link";
-import { ArrowLeft, Loader2, Sparkles, LogOut } from "lucide-react";
+import { ArrowLeft, Loader2, LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
@@ -137,7 +137,7 @@ export default function SettingsPage() {
                     </Link>
                     <div className="flex items-center gap-2">
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                            <Sparkles className="h-4 w-4" />
+                            <User className="h-4 w-4" />
                         </div>
                         <h1 className="text-2xl font-bold text-blue-900">Your Profile</h1>
                     </div>
