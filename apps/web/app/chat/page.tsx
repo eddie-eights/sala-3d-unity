@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Sparkles, Mic, MicOff } from "lucide-react";
+import { Send, Sparkles, Mic, MicOff, Minimize2, Maximize2 } from "lucide-react";
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
@@ -12,6 +12,8 @@ export default function ChatPage() {
   ]);
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+
+  const [isFloating, setIsFloating] = useState(false);
 
   const handleSend = (text: string) => {
     if (!text.trim()) return;
@@ -42,7 +44,7 @@ export default function ChatPage() {
        <div className="absolute bottom-[-20%] right-[-20%] h-[600px] w-[600px] rounded-full bg-cyan-200/30 blur-[120px] pointer-events-none" />
 
       {/* Main Content: Unity Container (Center) */}
-      <div id="unity-container" className="flex-1 flex flex-col items-center justify-center relative z-10 p-0 overflow-hidden">
+      <div id="unity-container" className="flex-1 flex flex-col items-center justify-center relative z-10 p-0 overflow-hidden w-full h-full">
         {/* Placeholder for Unity Canvas - This area is reserved for the 3D scene */}
         <div className="relative h-full w-full flex items-center justify-center">
              {/* Temporary Placeholder Visuals */}
@@ -51,39 +53,63 @@ export default function ChatPage() {
             </div>
             
             {/* Character Placeholder (to be replaced by Unity Canvas) */}
-            <div className="relative z-10 flex h-[600px] w-[400px] items-center justify-center rounded-3xl border-4 border-dashed border-white/30 bg-white/5 backdrop-blur-sm animate-pulse">
+            <div className={`relative z-10 flex items-center justify-center rounded-3xl border-4 border-dashed border-white/30 bg-white/5 backdrop-blur-sm animate-pulse transition-all duration-500 ${isFloating ? 'h-[80%] w-[80%]' : 'h-[600px] w-[400px]'}`}>
                  <span className="text-blue-300 font-medium">Sala (SD Model)</span>
             </div>
         </div>
       </div>
 
       {/* Right Sidebar: Chat Interface */}
-      <div className="w-[350px] border-l border-white/40 bg-white/60 backdrop-blur-xl shadow-xl flex flex-col z-20">
-        {/* Header */}
-        <div className="p-4 border-b border-white/40 flex items-center justify-between">
-            <h2 className="font-bold text-blue-900">Chat with Sala</h2>
-            <div className={`h-2 w-2 rounded-full ${isRecording ? 'bg-red-500 animate-ping' : 'bg-green-400'}`} />
-        </div>
-
-        {/* Messages */}
-        <ScrollArea className="flex-1 p-4">
-            <div className="flex flex-col gap-4">
-                {messages.map((m, i) => (
-                    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
-                            m.role === 'user' 
-                            ? 'bg-blue-500 text-white rounded-br-none' 
-                            : 'bg-white text-blue-900 rounded-bl-none border border-blue-100'
-                        }`}>
-                            {m.content}
-                        </div>
-                    </div>
-                ))}
+      <div className={`
+        flex flex-col z-20 transition-all duration-500 ease-in-out border-white/40 bg-white/60 backdrop-blur-xl shadow-xl
+        ${isFloating 
+            ? 'absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[600px] rounded-2xl border' 
+            : 'w-[350px] border-l h-full'
+        }
+      `}>
+        {/* Header - Only visible when NOT floating, OR we need a toggle button somewhere */}
+        {!isFloating && (
+             <div className="p-4 border-b border-white/40 flex items-center justify-between">
+                <h2 className="font-bold text-blue-900">Chat with Sala</h2>
+                <div className="flex items-center gap-2">
+                     <div className={`h-2 w-2 rounded-full ${isRecording ? 'bg-red-500 animate-ping' : 'bg-green-400'}`} />
+                     <Button variant="ghost" size="icon" onClick={() => setIsFloating(true)} className="h-6 w-6 rounded-full hover:bg-blue-100/50">
+                        <Minimize2 className="h-4 w-4 text-blue-500" />
+                     </Button>
+                </div>
             </div>
-        </ScrollArea>
+        )}
+
+        {/* Floating Toggle Button (When Floating) - Positioned absolutely above the input or integrated */}
+        {isFloating && (
+            <div className="absolute -top-10 right-0">
+                 <Button variant="secondary" size="icon" onClick={() => setIsFloating(false)} className="rounded-full h-8 w-8 bg-white/80 backdrop-blur border border-white/50 shadow-sm hover:bg-white">
+                    <Maximize2 className="h-4 w-4 text-blue-600" />
+                </Button>
+            </div>
+        )}
+
+        {/* Messages - Hidden when floating */}
+        {!isFloating && (
+            <ScrollArea className="flex-1 p-4">
+                <div className="flex flex-col gap-4">
+                    {messages.map((m, i) => (
+                        <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
+                                m.role === 'user' 
+                                ? 'bg-blue-500 text-white rounded-br-none' 
+                                : 'bg-white text-blue-900 rounded-bl-none border border-blue-100'
+                            }`}>
+                                {m.content}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </ScrollArea>
+        )}
 
         {/* Input Area */}
-        <div className="p-4 border-t border-white/40 bg-white/40">
+        <div className={`p-4 ${!isFloating ? 'border-t border-white/40 bg-white/40' : 'bg-transparent'}`}>
             <div className="flex gap-2 items-end">
                 <Button 
                     size="icon" 
