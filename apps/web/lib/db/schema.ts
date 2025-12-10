@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull(),
+  username: text("username").unique(),
   image: text("image"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
@@ -20,7 +21,7 @@ export const users = pgTable("users", {
   birthday: timestamp("birthday"),
   gender: text("gender"),
   hometown: text("hometown"),
-  currentValues: text("current_values"), // e.g., JSON string or just text for "values"
+  currentResidence: text("current_residence"),
   hobbies: text("hobbies"),
 });
 

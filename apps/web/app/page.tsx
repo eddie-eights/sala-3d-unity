@@ -45,6 +45,12 @@ export default function LandingPage() {
                     {/* Floor Shadow */}
                     <div className="mt-8 h-4 w-[200px] rounded-[100%] bg-blue-900/10 blur-md transition-all duration-500 group-hover:w-[240px] group-hover:bg-blue-900/20" />
                  </Link>
+                 
+                 <div className="mt-4">
+                    <Link href="/signup" className="text-blue-500 hover:text-blue-700 text-sm font-medium hover:underline">
+                        New here? Create an Account
+                    </Link>
+                 </div>
             </div>
         </div>
 

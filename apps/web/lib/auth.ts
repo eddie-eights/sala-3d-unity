@@ -9,8 +9,14 @@ export const auth = betterAuth({
         provider: "pg", 
         schema: schema,
     }),
+    username: true,
     emailAndPassword: {
         enabled: true
     },
-    // Add other providers here if needed
+    socialProviders: {
+        google: {
+            clientId: process.env.GOOGLE_CLIENT_ID as string,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+        }
+    }
 });
