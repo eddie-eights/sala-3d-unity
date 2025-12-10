@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import Link from "next/link";
 import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -214,26 +213,21 @@ export default function SettingsPage() {
                                 </div>
                             </div>
 
-                             <div className="space-y-3 col-span-1 sm:col-span-2">
+                            <div className="space-y-2 col-span-1 sm:col-span-2">
                                 <Label className="text-blue-800 font-medium">Gender</Label>
-                                <RadioGroup 
-                                    value={formData.gender} 
-                                    onValueChange={(val) => setFormData(prev => ({ ...prev, gender: val }))}
-                                    className="flex gap-4 p-4 rounded-lg bg-blue-50/50 border border-blue-100"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="male" id="gender-male" className="border-blue-400 text-blue-500 aria-checked:border-blue-600" />
-                                        <Label htmlFor="gender-male" className="font-medium cursor-pointer text-blue-700">男性</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="female" id="gender-female" className="border-pink-400 text-pink-500 aria-checked:border-pink-600" />
-                                        <Label htmlFor="gender-female" className="font-medium cursor-pointer text-pink-700">女性</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="no_answer" id="gender-none" className="border-slate-400 text-slate-500" />
-                                        <Label htmlFor="gender-none" className="font-medium cursor-pointer text-slate-600">無回答</Label>
-                                    </div>
-                                </RadioGroup>
+                                <div className="relative w-full">
+                                    <select
+                                        id="gender"
+                                        className="flex h-10 w-full appearance-none rounded-md border border-blue-100 bg-white/80 px-3 py-2 text-sm text-blue-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/20 disabled:cursor-not-allowed disabled:opacity-50"
+                                        value={formData.gender}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+                                    >
+                                        <option value="" disabled>Select Gender</option>
+                                        <option value="male">男性</option>
+                                        <option value="female">女性</option>
+                                        <option value="no_answer">無回答</option>
+                                    </select>
+                                </div>
                             </div>
 
                              <div className="space-y-2">
