@@ -74,7 +74,7 @@ export default function ChatPage() {
                 <h2 className="font-bold text-blue-900">Chat with Sala</h2>
                 <div className="flex items-center gap-2">
                      <div className={`h-2 w-2 rounded-full ${isRecording ? 'bg-red-500 animate-ping' : 'bg-green-400'}`} />
-                     <Link href="/settings">
+                     <Link href="/mypage">
                         <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full hover:bg-blue-100/50">
                             <Home className="h-4 w-4 text-blue-500" />
                         </Button>
@@ -89,7 +89,7 @@ export default function ChatPage() {
         {/* Floating Controls (When Floating) */}
         {isFloating && (
             <div className="absolute -top-10 right-0 flex gap-2">
-                 <Link href="/settings">
+                 <Link href="/mypage">
                     <Button variant="secondary" size="icon" className="rounded-full h-8 w-8 bg-white/80 backdrop-blur border border-white/50 shadow-sm hover:bg-white">
                         <Home className="h-4 w-4 text-blue-600" />
                     </Button>

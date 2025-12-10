@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 
-export default function SettingsPage() {
+export default function MyPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -19,7 +19,7 @@ export default function SettingsPage() {
 
     const [formData, setFormData] = useState({
         username: "",
-        birthday: "",
+        birthday: "", // Date string YYYY-MM-DD
         gender: "",
         hometown: "",
         currentResidence: "",
@@ -27,36 +27,54 @@ export default function SettingsPage() {
         name: "", // Display purpose
     });
 
+    const [birthYear, setBirthYear] = useState("");
+    const [birthMonth, setBirthMonth] = useState("");
+    const [birthDay, setBirthDay] = useState("");
+
+    // --- Date Logic ---
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+    const months = Array.from({ length: 12 }, (_, i) => i + 1);
+    const daysInMonth = (year: string, month: string) => {
+        if (!year || !month) return 31;
+        return new Date(parseInt(year), parseInt(month), 0).getDate();
+    };
+    const days = Array.from({ length: daysInMonth(birthYear, birthMonth) }, (_, i) => i + 1);
+
+    useEffect(() => {
+        if (birthYear && birthMonth && birthDay) {
+            setFormData(prev => ({
+                ...prev,
+                birthday: `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`
+            }));
+        }
+    }, [birthYear, birthMonth, birthDay]);
+
+
     useEffect(() => {
         const fetchProfile = async () => {
             try {
                 const res = await fetch('/api/profile');
-                if (res.status === 401) {
-                    router.push('/login');
-                    return;
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data) {
+                        setFormData(prev => ({ ...prev, ...data }));
+                        if (data.birthday) {
+                            const [y, m, d] = data.birthday.split('-');
+                            setBirthYear(y);
+                            setBirthMonth(parseInt(m).toString());
+                            setBirthDay(parseInt(d).toString());
+                        }
+                    }
                 }
-                if (!res.ok) throw new Error("Failed to load profile");
-                const data = await res.json();
-                
-                // Format date for input if needed, but we rely on split logic below
-                setFormData({
-                    username: data.username || "",
-                    birthday: data.birthday ? new Date(data.birthday).toISOString().split('T')[0] : "",
-                    gender: data.gender || "",
-                    hometown: data.hometown || "",
-                    currentResidence: data.currentResidence || "",
-                    hobbies: data.hobbies || "",
-                    name: data.name || "",
-                });
-            } catch (e: any) {
-                console.error(e);
-                setError(e.message);
+            } catch (e) {
+                console.error("Failed to fetch profile", e);
             } finally {
                 setLoading(false);
             }
         };
         fetchProfile();
-    }, [router]);
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
@@ -116,13 +134,13 @@ export default function SettingsPage() {
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center bg-blue-50 text-blue-600">
-                <Loader2 className="animate-spin h-8 w-8" />
+                <Loader2 className="h-10 w-10 animate-spin" />
             </div>
         );
     }
 
   return (
-    <div className="min-h-screen bg-blue-50/50 p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-blue-50/50 relative overflow-hidden flex items-center justify-center p-4">
          {/* Background Decoration */}
          <div className="absolute top-[-20%] left-[-20%] h-[600px] w-[600px] rounded-full bg-blue-200/30 blur-[120px] pointer-events-none" />
          <div className="absolute bottom-[-20%] right-[-20%] h-[600px] w-[600px] rounded-full bg-cyan-200/30 blur-[120px] pointer-events-none" />
@@ -139,7 +157,7 @@ export default function SettingsPage() {
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
                             <User className="h-4 w-4" />
                         </div>
-                        <h1 className="text-2xl font-bold text-blue-900">Your Profile</h1>
+                        <h1 className="text-2xl font-bold text-blue-900">My Page</h1>
                     </div>
                 </div>
                 <Button 

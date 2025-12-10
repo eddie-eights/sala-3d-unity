@@ -39,9 +39,9 @@ export default function LoginPage() {
     await authClient.signUp.email({
         email,
         password,
-        name: email.split("@")[0], // Default name
+        name: email.split("@")[0] || "User", // Default name
     }, {
-        onSuccess: () => router.push('/settings'),
+        onSuccess: () => router.push('/mypage'),
         onError: (ctx) => {
             alert(ctx.error.message);
             setLoading(false);
@@ -52,7 +52,7 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
       await authClient.signIn.social({ 
           provider: 'google',
-          callbackURL: '/settings'
+          callbackURL: '/mypage'
       });
   };
 
