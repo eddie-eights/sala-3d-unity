@@ -154,8 +154,14 @@ export default function LoginPage() {
                                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
+                            {/* Password Requirements */}
+                            <div className="text-xs space-y-1 pt-1">
+                                <p className={`flex items-center gap-1 ${password.length >= 8 ? 'text-green-600' : 'text-gray-400'}`}>
+                                    {password.length >= 8 ? '✓' : '○'} 8文字以上
+                                </p>
+                            </div>
                         </div>
-                        <Button className="w-full bg-green-500 hover:bg-green-600 text-white" disabled={loading}>
+                        <Button className="w-full bg-green-500 hover:bg-green-600 text-white" disabled={loading || password.length < 8}>
                             {loading ? "Creating Account..." : "Create Account"}
                         </Button>
                     </form>
