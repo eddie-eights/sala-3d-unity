@@ -19,25 +19,26 @@ export default function MyPage() {
     const [hasPasskey, setHasPasskey] = useState(true); // Default true to prevent flash
 
     useEffect(() => {
-        authClient.passkey.listPasskeys().then((res: any) => {
-            if (res.data && res.data.length > 0) {
-                setHasPasskey(true);
-            } else {
-                setHasPasskey(false);
-            }
-        }).catch(() => {});
+        // authClient.passkey.listPasskeys().then((res: any) => {
+        //     if (res.data && res.data.length > 0) {
+        //         setHasPasskey(true);
+        //     } else {
+        //         setHasPasskey(false);
+        //     }
+        // }).catch(() => {});
     }, []);
 
     const handleAddPasskey = async () => {
-        const res = await authClient.passkey.addPasskey({
-            name: "My Passkey",
-        });
-        if (res?.data) {
-             setHasPasskey(true);
-             toast.success("Passkey registered successfully!");
-        } else if (res?.error) {
-             toast.error(res.error.message);
-        }
+        // const res = await authClient.passkey.addPasskey({
+        //     name: "My Passkey",
+        // });
+        // if (res?.data) {
+        //      setHasPasskey(true);
+        //      toast.success("Passkey registered successfully!");
+        // } else if (res?.error) {
+        //      toast.error(res.error.message);
+        // }
+        toast.info("Passkey registration is temporarily disabled.");
     };
 
     const [formData, setFormData] = useState({
@@ -194,7 +195,7 @@ export default function MyPage() {
                 </Button>
             </div>
 
-            {!hasPasskey && !loading && (
+            {/* {!hasPasskey && !loading && (
                 <Card className="bg-blue-50/50 border-blue-200">
                     <CardContent className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -211,7 +212,7 @@ export default function MyPage() {
                         </Button>
                     </CardContent>
                 </Card>
-            )}
+            )} */}
 
             <form onSubmit={handleSubmit}>
                 <Card className="border-white/60 bg-white/60 backdrop-blur-xl shadow-xl transition-all duration-300">

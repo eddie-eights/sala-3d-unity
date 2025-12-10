@@ -57,13 +57,14 @@ export default function LoginPage() {
   };
 
   const handlePasskeySignIn = async () => {
-    try {
-        await authClient.signIn.passkey({
-            callbackURL: "/mypage",
-        });
-    } catch (e: any) {
-        alert(e.message || "Failed to sign in with Passkey");
-    }
+    // try {
+    //     await authClient.signIn.passkey({
+    //         callbackURL: "/mypage",
+    //     });
+    // } catch (e: any) {
+    //     alert(e.message || "Failed to sign in with Passkey");
+    // }
+    alert("Passkey login is temporarily disabled due to library maintenance.");
   };
 
   return (
@@ -187,14 +188,15 @@ export default function LoginPage() {
                 </div>
             </div>
 
-            <Button 
+{/* Passkey Login Temporarily Disabled due to lib issue */}
+            {/* <Button 
                 variant="outline" 
                 className="w-full border-blue-200 hover:bg-blue-50 text-blue-700 mb-2"
                 onClick={handlePasskeySignIn}
             >
                 <Fingerprint className="mr-2 h-4 w-4" />
                 Sign in with Passkey
-            </Button>
+            </Button> */}
 
             <Button 
                 variant="outline" 
