@@ -1,4 +1,3 @@
-import { nanoid } from "nanoid";
 import {
   pgTable,
   text,
@@ -15,7 +14,6 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull(),
   username: text("username"), // Allow duplicates
-  displayId: text("display_id").notNull().unique().$defaultFn(() => nanoid(10)), // Unique ID for identification
   image: text("image"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),

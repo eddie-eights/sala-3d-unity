@@ -42,7 +42,7 @@ export default function MyPage() {
 
     const [formData, setFormData] = useState({
         username: "",
-        displayId: "", // Add displayId
+        id: "", // Use id instead of displayId
         birthday: "", // Date string YYYY-MM-DD
         gender: "",
         hometown: "",
@@ -225,7 +225,7 @@ export default function MyPage() {
                             <div className="space-y-2 col-span-1 sm:col-span-2">
                                  <Label className="text-blue-800 font-medium">User ID</Label>
                                  <div className="p-2 rounded bg-blue-50/50 border border-blue-100 text-sm font-mono text-blue-600 select-all">
-                                     {formData.displayId || "Loading..."}
+                                     {formData.id || "Loading..."}
                                  </div>
                                  <p className="text-[10px] text-blue-400">Unique ID for valid identification.</p>
                             </div>
