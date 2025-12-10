@@ -139,15 +139,68 @@ export default function SettingsPage() {
                             </div>
 
                              <div className="space-y-2">
-                                <Label htmlFor="birthday">Date of Birth <span className="text-red-500">*</span></Label>
-                                <Input 
-                                    id="birthday" 
-                                    type="date" 
-                                    value={formData.birthday}
-                                    onChange={handleChange}
-                                    className="bg-slate-800 border-slate-700" 
-                                    required
-                                />
+                                <Label>Date of Birth <span className="text-red-500">*</span></Label>
+                                <div className="flex gap-2">
+                                    {/* Year */}
+                                    <select
+                                        id="dob-year"
+                                        className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                                        value={formData.birthday ? new Date(formData.birthday).getFullYear() : ""}
+                                        onChange={(e) => {
+                                            const y = e.target.value;
+                                            const d = formData.birthday ? new Date(formData.birthday) : new Date();
+                                            const m = formData.birthday ? d.getMonth() + 1 : 1;
+                                            const day = formData.birthday ? d.getDate() : 1;
+                                            if (y) setFormData(prev => ({ ...prev, birthday: `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}` }));
+                                        }}
+                                        required
+                                    >
+                                        <option value="" disabled>Year</option>
+                                        {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                                            <option key={year} value={year}>{year}</option>
+                                        ))}
+                                    </select>
+                                    
+                                    {/* Month */}
+                                    <select
+                                        id="dob-month"
+                                        className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                                        value={formData.birthday ? new Date(formData.birthday).getMonth() + 1 : ""}
+                                        onChange={(e) => {
+                                            const m = e.target.value;
+                                            const d = formData.birthday ? new Date(formData.birthday) : new Date();
+                                            const y = formData.birthday ? d.getFullYear() : 2000;
+                                            const day = formData.birthday ? d.getDate() : 1;
+                                            if (m) setFormData(prev => ({ ...prev, birthday: `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}` }));
+                                        }}
+                                        required
+                                    >
+                                        <option value="" disabled>Month</option>
+                                        {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                                            <option key={month} value={month}>{month}</option>
+                                        ))}
+                                    </select>
+
+                                    {/* Day */}
+                                    <select
+                                        id="dob-day"
+                                        className="flex h-10 w-full rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                                        value={formData.birthday ? new Date(formData.birthday).getDate() : ""}
+                                        onChange={(e) => {
+                                            const day = e.target.value;
+                                            const d = formData.birthday ? new Date(formData.birthday) : new Date();
+                                            const y = formData.birthday ? d.getFullYear() : 2000;
+                                            const m = formData.birthday ? d.getMonth() + 1 : 1;
+                                            if (day) setFormData(prev => ({ ...prev, birthday: `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}` }));
+                                        }}
+                                        required
+                                    >
+                                        <option value="" disabled>Day</option>
+                                        {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                                            <option key={day} value={day}>{day}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
 
                             <div className="space-y-2">
