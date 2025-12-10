@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, KeyRound, Mail, Sparkles, User, Eye, EyeOff } from 'lucide-react';
+import { ChevronLeft, KeyRound, Mail, Sparkles, User, Eye, EyeOff, Fingerprint } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -26,7 +26,7 @@ export default function LoginPage() {
         password,
     }, {
         onSuccess: () => router.push('/chat'),
-        onError: (ctx) => {
+        onError: (ctx: any) => {
             alert(ctx.error.message);
             setLoading(false);
         }
@@ -42,7 +42,7 @@ export default function LoginPage() {
         name: email.split("@")[0] || "User", // Default name
     }, {
         onSuccess: () => router.push('/mypage'),
-        onError: (ctx) => {
+        onError: (ctx: any) => {
             alert(ctx.error.message);
             setLoading(false);
         }
@@ -54,6 +54,16 @@ export default function LoginPage() {
           provider: 'google',
           callbackURL: '/mypage'
       });
+  };
+
+  const handlePasskeySignIn = async () => {
+    try {
+        await authClient.signIn.passkey({
+            callbackURL: "/mypage",
+        });
+    } catch (e: any) {
+        alert(e.message || "Failed to sign in with Passkey");
+    }
   };
 
   return (
@@ -176,6 +186,15 @@ export default function LoginPage() {
                     <span className="bg-white/80 px-2 text-blue-400 backdrop-blur-sm">Or continue with</span>
                 </div>
             </div>
+
+            <Button 
+                variant="outline" 
+                className="w-full border-blue-200 hover:bg-blue-50 text-blue-700 mb-2"
+                onClick={handlePasskeySignIn}
+            >
+                <Fingerprint className="mr-2 h-4 w-4" />
+                Sign in with Passkey
+            </Button>
 
             <Button 
                 variant="outline" 

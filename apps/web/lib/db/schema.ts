@@ -1,3 +1,4 @@
+import { nanoid } from "nanoid";
 import {
   pgTable,
   text,
@@ -13,7 +14,8 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull(),
-  username: text("username").unique(),
+  username: text("username"), // Allow duplicates
+  displayId: text("display_id").notNull().unique().$defaultFn(() => nanoid(10)), // Unique ID for identification
   image: text("image"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
@@ -63,6 +65,21 @@ export const verifications = pgTable("verification", {
   expiresAt: timestamp("expires_at").notNull(),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updated_at"),
+});
+
+export const passkey = pgTable("passkey", {
+  id: text("id").primaryKey(),
+  name: text("name"),
+  publicKey: text("public_key").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
+  webauthnUserID: text("webauthn_user_id").notNull(),
+  counter: integer("counter").notNull(),
+  deviceType: text("device_type").notNull(),
+  backedUp: boolean("backed_up").notNull(),
+  transports: text("transports"),
+  createdAt: timestamp("created_at"),
 });
 
 // App Specific Tables

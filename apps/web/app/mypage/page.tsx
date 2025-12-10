@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link";
-import { ArrowLeft, Loader2, LogOut, User } from "lucide-react";
+import { ArrowLeft, Loader2, LogOut, User, Fingerprint } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
@@ -16,9 +16,33 @@ export default function MyPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [hasPasskey, setHasPasskey] = useState(true); // Default true to prevent flash
+
+    useEffect(() => {
+        authClient.passkey.listPasskeys().then((res: any) => {
+            if (res.data && res.data.length > 0) {
+                setHasPasskey(true);
+            } else {
+                setHasPasskey(false);
+            }
+        }).catch(() => {});
+    }, []);
+
+    const handleAddPasskey = async () => {
+        const res = await authClient.passkey.addPasskey({
+            name: "My Passkey",
+        });
+        if (res?.data) {
+             setHasPasskey(true);
+             toast.success("Passkey registered successfully!");
+        } else if (res?.error) {
+             toast.error(res.error.message);
+        }
+    };
 
     const [formData, setFormData] = useState({
         username: "",
+        displayId: "", // Add displayId
         birthday: "", // Date string YYYY-MM-DD
         gender: "",
         hometown: "",
@@ -170,19 +194,47 @@ export default function MyPage() {
                 </Button>
             </div>
 
+            {!hasPasskey && !loading && (
+                <Card className="bg-blue-50/50 border-blue-200">
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-blue-100 p-2 rounded-full">
+                                <Fingerprint className="text-blue-600 h-5 w-5" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-sm text-blue-900">Enable Passkey Login</h3>
+                                <p className="text-xs text-blue-600/70">Login faster and more securely.</p>
+                            </div>
+                        </div>
+                        <Button size="sm" onClick={handleAddPasskey} className="bg-blue-500 hover:bg-blue-600 text-white rounded-full">
+                            Register
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+
             <form onSubmit={handleSubmit}>
                 <Card className="border-white/60 bg-white/60 backdrop-blur-xl shadow-xl transition-all duration-300">
                     <CardHeader>
-                        <CardTitle className="text-blue-900">Personal Details</CardTitle>
-                        <CardDescription className="text-blue-500/80">Customize your identity in Sala. Username and Birthday are required.</CardDescription>
+                        <CardTitle className="text-xl text-blue-900">Edit Profile</CardTitle>
+                        <CardDescription className="text-blue-600/70">Tell us about yourself</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                             {/* UserID Display */}
+                            <div className="space-y-2 col-span-1 sm:col-span-2">
+                                 <Label className="text-blue-800 font-medium">User ID</Label>
+                                 <div className="p-2 rounded bg-blue-50/50 border border-blue-100 text-sm font-mono text-blue-600 select-all">
+                                     {formData.displayId || "Loading..."}
+                                 </div>
+                                 <p className="text-[10px] text-blue-400">Unique ID for valid identification.</p>
+                            </div>
+
                             <div className="space-y-2">
-                                <Label htmlFor="username" className="text-blue-800 font-medium">Username <span className="text-red-400">*</span></Label>
+                                <Label htmlFor="username" className="text-blue-800 font-medium">Username (Display Name) <span className="text-red-400">*</span></Label>
                                 <Input 
                                     id="username" 
-                                    placeholder="unique_username" 
+                                    placeholder="Your Name" 
                                     value={formData.username}
                                     onChange={handleChange}
                                     className="bg-white/80 border-blue-100 focus:border-blue-400 focus:ring-blue-400/20 text-blue-900 placeholder:text-blue-300/70" 
