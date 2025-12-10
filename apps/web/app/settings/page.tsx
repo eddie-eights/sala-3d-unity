@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link";
-import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
 
 export default function SettingsPage() {
     const router = useRouter();
@@ -101,6 +102,17 @@ export default function SettingsPage() {
         }
     };
 
+    const handleLogout = async () => {
+        await authClient.signOut({
+            fetchOptions: {
+                onSuccess: () => {
+                    toast.success("Logged out successfully");
+                    router.push("/login");
+                },
+            },
+        });
+    };
+
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center bg-blue-50 text-blue-600">
@@ -116,18 +128,28 @@ export default function SettingsPage() {
          <div className="absolute bottom-[-20%] right-[-20%] h-[600px] w-[600px] rounded-full bg-cyan-200/30 blur-[120px] pointer-events-none" />
 
         <div className="relative z-10 mx-auto max-w-2xl space-y-6 pt-8">
-            <div className="flex items-center gap-4">
-                <Link href="/chat">
-                    <Button variant="ghost" size="icon" className="hover:bg-white/50 text-blue-900 rounded-full">
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                </Link>
-                <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                        <Sparkles className="h-4 w-4" />
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Link href="/chat">
+                        <Button variant="ghost" size="icon" className="hover:bg-white/50 text-blue-900 rounded-full">
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                    </Link>
+                    <div className="flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                            <Sparkles className="h-4 w-4" />
+                        </div>
+                        <h1 className="text-2xl font-bold text-blue-900">Your Profile</h1>
                     </div>
-                    <h1 className="text-2xl font-bold text-blue-900">Your Profile</h1>
                 </div>
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={handleLogout}
+                    className="hover:bg-red-50 text-red-500 rounded-full hover:text-red-600 transition-colors"
+                >
+                    <LogOut className="h-5 w-5" />
+                </Button>
             </div>
 
             <form onSubmit={handleSubmit}>
