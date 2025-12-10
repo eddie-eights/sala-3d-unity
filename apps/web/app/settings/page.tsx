@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
     const router = useRouter();
@@ -83,8 +84,16 @@ export default function SettingsPage() {
                 throw new Error(result.error || "Failed to update profile");
             }
             
-            // Success feedback?
-            alert("Profile updated successfully!");
+            // Success feedback
+            toast.success("Profile updated! Let's chat!", {
+                description: "Redirecting to your room...",
+                duration: 2000,
+            });
+
+            // Redirect to chat
+            setTimeout(() => {
+                router.push('/chat');
+            }, 1000);
         } catch (e: any) {
             setError(e.message);
         } finally {
