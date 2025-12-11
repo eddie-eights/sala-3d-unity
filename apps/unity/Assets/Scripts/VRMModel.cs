@@ -2,10 +2,8 @@ using UnityEngine;
 using System;
 using System.Collections;
 
-#if VRM_INSTALLED
 using UniVRM10;
 using UniGLTF;
-#endif
 
 /// <summary>
 /// VRMModel handles VRoid model loading and blendshape control.
@@ -16,9 +14,7 @@ public class VRMModel : MonoBehaviour
     public static VRMModel Instance { get; private set; }
 
     [Header("VRM Components")]
-#if VRM_INSTALLED
     [SerializeField] private Vrm10Instance vrmInstance;
-#endif
     [SerializeField] private SkinnedMeshRenderer faceRenderer;
 
     [Header("Blendshape Mapping")]
@@ -48,6 +44,29 @@ public class VRMModel : MonoBehaviour
             return;
         }
 
+        // Auto-detect Vrm10Instance if not assigned
+        if (vrmInstance == null)
+        {
+            vrmInstance = GetComponent<Vrm10Instance>();
+            if (vrmInstance == null)
+            {
+                vrmInstance = GetComponentInParent<Vrm10Instance>();
+            }
+            if (vrmInstance == null)
+            {
+                vrmInstance = GetComponentInChildren<Vrm10Instance>();
+            }
+            
+            if (vrmInstance != null)
+            {
+                Debug.Log($"VRMModel: Auto-detected Vrm10Instance on '{vrmInstance.gameObject.name}'");
+            }
+            else
+            {
+                Debug.LogWarning("VRMModel: Vrm10Instance not found. VRM Expression API will not work.");
+            }
+        }
+
         AutoDetectBlendshapes();
     }
 
@@ -57,18 +76,38 @@ public class VRMModel : MonoBehaviour
     /// </summary>
     private void AutoDetectBlendshapes()
     {
+        // ALWAYS search for Face by name to avoid serialization issues in WebGL
+        // The serialized reference from Editor may not point to the same instance at runtime
+        Debug.Log($"VRMModel: Searching for Face object by name...");
+        
+        // Try to find by name first (more reliable in WebGL)
+        GameObject faceObj = GameObject.Find("Face");
+        if (faceObj != null)
+        {
+            var renderer = faceObj.GetComponent<SkinnedMeshRenderer>();
+            if (renderer != null && renderer.sharedMesh != null && renderer.sharedMesh.blendShapeCount > 0)
+            {
+                faceRenderer = renderer;
+                Debug.Log($"VRMModel: Found Face by GameObject.Find - {renderer.sharedMesh.blendShapeCount} blendshapes");
+            }
+        }
+        
+        // Fallback to searching in children
         if (faceRenderer == null)
         {
-            // Try to find face renderer automatically
+            Debug.Log($"VRMModel: Face not found by name, searching in children of {gameObject.name}...");
             var renderers = GetComponentsInChildren<SkinnedMeshRenderer>();
+            Debug.Log($"VRMModel: Found {renderers.Length} SkinnedMeshRenderers");
+            
             foreach (var renderer in renderers)
             {
                 if (renderer.sharedMesh != null && renderer.sharedMesh.blendShapeCount > 0)
                 {
-                    // Look for face mesh (usually has the most blendshapes)
+                    Debug.Log($"VRMModel: Renderer '{renderer.gameObject.name}' has {renderer.sharedMesh.blendShapeCount} blendshapes");
                     if (renderer.sharedMesh.blendShapeCount > 10)
                     {
                         faceRenderer = renderer;
+                        Debug.Log($"VRMModel: Selected '{renderer.gameObject.name}' as faceRenderer");
                         break;
                     }
                 }
@@ -99,7 +138,7 @@ public class VRMModel : MonoBehaviour
                 mouthO = i;
         }
 
-        Debug.Log($"VRMModel: Auto-detected blendshapes - A:{mouthA}, I:{mouthI}, U:{mouthU}, E:{mouthE}, O:{mouthO}");
+        Debug.Log($"VRMModel: Auto-detected blendshapes on '{faceRenderer.gameObject.name}' - A:{mouthA}, I:{mouthI}, U:{mouthU}, E:{mouthE}, O:{mouthO}");
     }
 
     /// <summary>
@@ -108,7 +147,49 @@ public class VRMModel : MonoBehaviour
     /// </summary>
     public void SetMouthWeights(float a, float i, float u, float e, float o)
     {
-        if (faceRenderer == null) return;
+        // Debug log every 30 frames
+        if (Time.frameCount % 30 == 0)
+        {
+            Debug.Log($"VRMModel.SetMouthWeights: A={a:F2}, I={i:F2}, U={u:F2}, E={e:F2}, O={o:F2}");
+        }
+
+
+        // Use VRM SDK Expression API - this is the ONLY way to control mouth in VRM 1.0
+        if (vrmInstance != null && vrmInstance.Runtime != null && vrmInstance.Runtime.Expression != null)
+        {
+            var expression = vrmInstance.Runtime.Expression;
+            
+            // VRM 1.0 manages expressions through a central system
+            // We need to set individual blendshapes through the expression manager
+            try
+            {
+                // Set mouth shapes - VRM uses 0-1 range
+                // These correspond to the Fcl_MTH_* blendshapes
+                if (mouthA >= 0) expression.SetWeight(ExpressionKey.Aa, a);
+                if (mouthI >= 0) expression.SetWeight(ExpressionKey.Ih, i);
+                if (mouthU >= 0) expression.SetWeight(ExpressionKey.Ou, u);
+                if (mouthE >= 0) expression.SetWeight(ExpressionKey.Ee, e);
+                if (mouthO >= 0) expression.SetWeight(ExpressionKey.Oh, o);
+                
+                if (Time.frameCount % 60 == 0)
+                {
+                    Debug.Log($"VRMModel: Set VRM Expression weights - Aa={a:F2}, Ih={i:F2}, Ou={u:F2}, Ee={e:F2}, Oh={o:F2}");
+                }
+                return;
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"VRMModel: Failed to use VRM Expression API: {ex.Message}. Falling back to direct manipulation.");
+            }
+        }
+
+
+        // Fallback: Direct blendshape manipulation (won't work if VRM Runtime is active)
+        if (faceRenderer == null)
+        {
+            Debug.LogWarning("VRMModel: faceRenderer is null in SetMouthWeights!");
+            return;
+        }
 
         // Convert 0-1 to 0-100 for blendshapes
         if (mouthA >= 0) faceRenderer.SetBlendShapeWeight(mouthA, a * 100f);
@@ -116,6 +197,12 @@ public class VRMModel : MonoBehaviour
         if (mouthU >= 0) faceRenderer.SetBlendShapeWeight(mouthU, u * 100f);
         if (mouthE >= 0) faceRenderer.SetBlendShapeWeight(mouthE, e * 100f);
         if (mouthO >= 0) faceRenderer.SetBlendShapeWeight(mouthO, o * 100f);
+        
+        if (Time.frameCount % 60 == 0 && mouthA >= 0)
+        {
+            float actualA = faceRenderer.GetBlendShapeWeight(mouthA);
+            Debug.Log($"VRMModel.Fallback: Set A={a*100:F0}, Got A={actualA:F0}");
+        }
     }
 
     /// <summary>
@@ -132,7 +219,6 @@ public class VRMModel : MonoBehaviour
     /// </summary>
     public void SetExpression(string expressionName, float weight = 1.0f)
     {
-#if VRM_INSTALLED
         if (vrmInstance != null && vrmInstance.Runtime != null)
         {
             var expressionKey = expressionName.ToLower() switch
@@ -147,9 +233,6 @@ public class VRMModel : MonoBehaviour
             
             vrmInstance.Runtime.Expression.SetWeight(expressionKey, weight);
         }
-#else
-        Debug.LogWarning("VRMModel: UniVRM not installed. Expression control disabled.");
-#endif
     }
 
     /// <summary>

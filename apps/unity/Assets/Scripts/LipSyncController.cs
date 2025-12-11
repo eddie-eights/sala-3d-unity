@@ -17,7 +17,7 @@ public class LipSyncController : MonoBehaviour
     [Header("Lip Sync Settings")]
     [SerializeField] private LipSyncMode mode = LipSyncMode.AmplitudeBased;
     [SerializeField] [Range(0.1f, 5f)] private float sensitivity = 2f;
-    [SerializeField] [Range(0.01f, 0.5f)] private float smoothing = 0.1f;
+    [SerializeField] [Range(0.01f, 0.5f)] private float smoothing = 0.02f; // Much lower for faster response
     [SerializeField] [Range(0f, 1f)] private float minOpenness = 0f;
     [SerializeField] [Range(0f, 1f)] private float maxOpenness = 1f;
 
@@ -78,7 +78,9 @@ public class LipSyncController : MonoBehaviour
         }
     }
 
-    private void Update()
+    // Use LateUpdate to apply lip sync AFTER animation updates
+    // This prevents animations from overriding our blendshape changes
+    private void LateUpdate()
     {
         if (!isActive || vrmModel == null) return;
 
@@ -92,16 +94,39 @@ public class LipSyncController : MonoBehaviour
 
     private void UpdateAmplitudeBasedLipSync()
     {
+        // TEST MODE: Force mouth movement to verify visual control
+        bool testMode = true;
+        if (testMode)
+        {
+            float sine = (Mathf.Sin(Time.time * 5f) + 1f) * 0.5f; // 0 to 1, slow oscillation
+            if (Time.frameCount % 60 == 0)
+            {
+                Debug.Log($"LipSyncController [TEST MODE]: Sine={sine:F2}");
+            }
+            vrmModel.SetMouthWeights(sine, 0, 0, 0, 0);
+            return;
+        }
+
         // Get current audio amplitude
         float rawAmplitude = 0f;
         if (audioManager != null)
         {
             rawAmplitude = audioManager.GetCurrentAmplitude();
         }
+        else
+        {
+            Debug.LogWarning("LipSync: audioManager is null!");
+        }
 
         // Smooth amplitude
         currentAmplitude = Mathf.Lerp(currentAmplitude, rawAmplitude * sensitivity, Time.deltaTime / smoothing);
         currentAmplitude = Mathf.Clamp01(currentAmplitude);
+
+        // Debug log every 0.5 seconds
+        if (Time.frameCount % 30 == 0)
+        {
+            Debug.Log($"LipSync Update: rawAmplitude={rawAmplitude:F3}, currentAmplitude={currentAmplitude:F3}, vrmModel={(vrmModel != null ? "OK" : "NULL")}");
+        }
 
         // Map to mouth openness
         float openness = Mathf.Lerp(minOpenness, maxOpenness, currentAmplitude);

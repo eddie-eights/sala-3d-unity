@@ -8,8 +8,21 @@ import { Send, Sparkles, Mic, MicOff, Minimize2, Maximize2, Home, Loader2 } from
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { UnityPlayer, useUnity } from "@/components/UnityPlayer";
+import { UnityPlayer, UnityPlayerRef } from "@/components/UnityPlayer";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
+
+// Typing animation component
+const TypingIndicator = () => (
+  <div className="flex justify-start">
+    <div className="max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm bg-white text-blue-900 rounded-bl-none border border-blue-100">
+      <div className="flex gap-1 items-center">
+        <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+        <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+        <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+      </div>
+    </div>
+  </div>
+);
 
 export default function ChatPage() {
   const router = useRouter();
@@ -43,20 +56,78 @@ export default function ChatPage() {
   }, [router]);
 
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
-    { role: 'assistant', content: 'Hello! Welcome to your room. I am Sala.' }
+    { role: 'assistant', content: 'こんにちは！私はサラだよ。何か聞きたいことある？' }
   ]);
   const [input, setInput] = useState('');
   const [isFloating, setIsFloating] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
-  const handleSend = useCallback((text: string) => {
-    if (!text.trim()) return;
+  // Unity control ref
+  const unityControlRef = useRef<UnityPlayerRef>(null);
+
+  const handleSend = useCallback(async (text: string) => {
+    if (!text.trim() || isThinking) return;
+    
+    // Add user message
     setMessages(prev => [...prev, { role: 'user', content: text }]);
     setInput('');
-    // Mock response
-    setTimeout(() => {
-        setMessages(prev => [...prev, { role: 'assistant', content: "That's interesting!" }]);
-    }, 1000);
-  }, []);
+    
+    // Set thinking state
+    setIsThinking(true);
+    unityControlRef.current?.think();
+
+    try {
+      // Get AI response
+      const chatResponse = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          message: text,
+          history: messages.slice(-10),
+        }),
+      });
+
+      if (!chatResponse.ok) {
+        throw new Error('Chat API failed');
+      }
+
+      const chatData = await chatResponse.json();
+      const aiText = chatData.text;
+
+      // Add AI response to messages
+      setMessages(prev => [...prev, { role: 'assistant', content: aiText }]);
+
+      // Use OpenAI TTS with Unity lip sync
+      if (aiText && aiText.trim()) {
+        const ttsResponse = await fetch('/api/text-to-speech', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: aiText }),
+        });
+
+        if (ttsResponse.ok) {
+          const audioBlob = await ttsResponse.blob();
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64Audio = reader.result as string;
+            const base64Data = base64Audio.split(',')[1];
+            if (unityControlRef.current?.speakWithAudio && base64Data) {
+              setIsSpeaking(true);
+              unityControlRef.current.speakWithAudio(base64Data);
+            }
+          };
+          reader.readAsDataURL(audioBlob);
+        }
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      toast.error('Failed to get response');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'エラーが発生しました。' }]);
+    } finally {
+      setIsThinking(false);
+    }
+  }, [messages, isThinking]);
 
   // Web Speech API voice input
   const { 
@@ -135,11 +206,14 @@ export default function ChatPage() {
       {/* Main Content: Unity 3D Character (Center) */}
       <div id="unity-container" className="flex-1 flex flex-col items-center justify-center relative z-10 p-0 overflow-hidden w-full h-full">
         <UnityPlayer
-          key="sala-unity" // Stable key to prevent remounting
+          ref={unityControlRef}
+          key="sala-unity"
           className="w-full h-full"
           onReady={() => console.log('Unity Ready!')}
-          onCharacterStateChanged={(state) => console.log('Character state:', state)}
-          onCharacterFinishedSpeaking={() => console.log('Character finished speaking')}
+          onCharacterStateChanged={(state: string) => {
+            console.log('Character state:', state);
+            if (state === 'idle') setIsSpeaking(false);
+          }}
         />
       </div>
 
@@ -198,6 +272,7 @@ export default function ChatPage() {
                             </div>
                         </div>
                     ))}
+                    {isThinking && <TypingIndicator />}
                 </div>
             </ScrollArea>
         )}
