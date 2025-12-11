@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Sparkles, Mic, MicOff, Minimize2, Maximize2, Home, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner"; // Ensure sonner is installed/available
+import { toast } from "sonner";
+import { UnityPlayer, useUnity } from "@/components/UnityPlayer";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -85,20 +86,15 @@ export default function ChatPage() {
        <div className="absolute top-[-20%] left-[-20%] h-[600px] w-[600px] rounded-full bg-blue-200/30 blur-[120px] pointer-events-none" />
        <div className="absolute bottom-[-20%] right-[-20%] h-[600px] w-[600px] rounded-full bg-cyan-200/30 blur-[120px] pointer-events-none" />
 
-      {/* Main Content: Unity Container (Center) */}
+      {/* Main Content: Unity 3D Character (Center) */}
       <div id="unity-container" className="flex-1 flex flex-col items-center justify-center relative z-10 p-0 overflow-hidden w-full h-full">
-        {/* Placeholder for Unity Canvas - This area is reserved for the 3D scene */}
-        <div className="relative h-full w-full flex items-center justify-center">
-             {/* Temporary Placeholder Visuals */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                 <div className="text-blue-200/20 font-bold text-9xl select-none">UNITY 3D</div>
-            </div>
-            
-            {/* Character Placeholder (to be replaced by Unity Canvas) */}
-            <div className={`relative z-10 flex items-center justify-center rounded-3xl border-4 border-dashed border-white/30 bg-white/5 backdrop-blur-sm animate-pulse transition-all duration-500 ${isFloating ? 'h-[80%] w-[80%]' : 'h-[600px] w-[400px]'}`}>
-                 <span className="text-blue-300 font-medium">Sala (SD Model)</span>
-            </div>
-        </div>
+        <UnityPlayer
+          key="sala-unity" // Stable key to prevent remounting
+          className="w-full h-full"
+          onReady={() => console.log('Unity Ready!')}
+          onCharacterStateChanged={(state) => console.log('Character state:', state)}
+          onCharacterFinishedSpeaking={() => console.log('Character finished speaking')}
+        />
       </div>
 
       {/* Right Sidebar: Chat Interface */}
