@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { UnityPlayer, useUnity } from "@/components/UnityPlayer";
+import { useVoiceInput } from "@/hooks/useVoiceInput";
 
 export default function ChatPage() {
   const router = useRouter();
@@ -45,11 +46,9 @@ export default function ChatPage() {
     { role: 'assistant', content: 'Hello! Welcome to your room. I am Sala.' }
   ]);
   const [input, setInput] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
-
   const [isFloating, setIsFloating] = useState(false);
 
-  const handleSend = (text: string) => {
+  const handleSend = useCallback((text: string) => {
     if (!text.trim()) return;
     setMessages(prev => [...prev, { role: 'user', content: text }]);
     setInput('');
@@ -57,19 +56,66 @@ export default function ChatPage() {
     setTimeout(() => {
         setMessages(prev => [...prev, { role: 'assistant', content: "That's interesting!" }]);
     }, 1000);
-  };
+  }, []);
 
-  const toggleRecording = () => {
-      if (isRecording) {
-            // Stop recording -> Auto Send
-            setIsRecording(false);
-            // Mock voice-to-text result
-            handleSend("🎤 [Voice Message] This is a simulated voice input.");
-      } else {
-            // Start recording
-            setIsRecording(true);
+  // Web Speech API voice input
+  const { 
+    isRecording, 
+    isSupported,
+    toggleRecording,
+    startRecording,
+    stopRecording,
+  } = useVoiceInput({
+    language: 'ja-JP',
+    onInterimTranscript: (text) => {
+      // Show interim text in input field while speaking
+      // The hook clears this by sending empty string when stopping
+      setInput(text);
+    },
+    onTranscript: (text) => {
+      // This is called when recording stops and we have text to send
+      if (text.trim()) {
+        handleSend(text);
       }
-  };
+      // Always clear input after transcript is processed
+      setInput('');
+    },
+    onError: (error) => {
+      if (error === 'not-allowed') {
+        toast.error("Microphone access denied. Please allow microphone access.");
+      } else if (error !== 'no-speech') {
+        toast.error(`Voice input error: ${error}`);
+      }
+    },
+  });
+
+  // Spacebar hold-to-talk
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only trigger if spacebar pressed and not already recording
+      // Ignore if user is typing in an input/textarea
+      if (e.code === 'Space' && !isRecording && 
+          !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+        e.preventDefault();
+        startRecording();
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && isRecording) {
+        e.preventDefault();
+        stopRecording();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [isRecording, startRecording, stopRecording]);
 
   if (isCheckingProfile) {
       return (
@@ -161,10 +207,19 @@ export default function ChatPage() {
             <div className="flex gap-2 items-end">
                 <Button 
                     size="icon" 
-                    onClick={toggleRecording} 
-                    className={`rounded-full h-10 w-10 shrink-0 shadow-md transition-all ${isRecording ? 'bg-red-500 hover:bg-red-600 animate-pulse' : 'bg-white hover:bg-blue-50 text-blue-500 border border-blue-100'}`}
+                    onClick={toggleRecording}
+                    disabled={!isSupported}
+                    className={`rounded-full h-10 w-10 shrink-0 shadow-md transition-all ${
+                      isRecording 
+                        ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+                        : 'bg-white hover:bg-blue-50 text-blue-500 border border-blue-100'
+                    }`}
                 >
-                    {isRecording ? <div className="h-3 w-3 bg-white rounded-sm" /> : <Mic className="h-4 w-4" />}
+                    {isRecording ? (
+                      <div className="h-3 w-3 bg-white rounded-sm" />
+                    ) : (
+                      <Mic className="h-4 w-4" />
+                    )}
                 </Button>
 
                 <div className="relative flex-1">
@@ -187,7 +242,7 @@ export default function ChatPage() {
                     <Send className="h-4 w-4" />
                 </Button>
             </div>
-            {isRecording && <p className="text-xs text-center text-red-500 mt-2 font-medium animate-pulse">Recording... Click to stop & send.</p>}
+            {isRecording && <p className="text-xs text-center text-red-500 mt-2 font-medium animate-pulse">Listening... Click to stop & send.</p>}
         </div>
       </div>
     </div>
