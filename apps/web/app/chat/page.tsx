@@ -58,10 +58,12 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
     { role: 'assistant', content: 'こんにちは！私はサラだよ。何か聞きたいことある？' }
   ]);
-  const [input, setInput] = useState('');
   const [isFloating, setIsFloating] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Input ref for uncontrolled input (fixes Japanese IME issues)
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Unity control ref
   const unityControlRef = useRef<UnityPlayerRef>(null);
@@ -71,7 +73,11 @@ export default function ChatPage() {
     
     // Add user message
     setMessages(prev => [...prev, { role: 'user', content: text }]);
-    setInput('');
+    
+    // Clear input
+    if (inputRef.current) {
+      inputRef.current.value = '';
+    }
     
     // Set thinking state
     setIsThinking(true);
@@ -137,22 +143,12 @@ export default function ChatPage() {
     isRecording, 
     isSupported,
     toggleRecording,
-    startRecording,
-    stopRecording,
   } = useVoiceInput({
     language: 'ja-JP',
-    onInterimTranscript: (text) => {
-      // Show interim text in input field while speaking
-      // The hook clears this by sending empty string when stopping
-      setInput(text);
-    },
     onTranscript: (text) => {
-      // This is called when recording stops and we have text to send
       if (text.trim()) {
         handleSend(text);
       }
-      // Always clear input after transcript is processed
-      setInput('');
     },
     onError: (error) => {
       if (error === 'not-allowed') {
@@ -162,34 +158,6 @@ export default function ChatPage() {
       }
     },
   });
-
-  // Spacebar hold-to-talk
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Only trigger if spacebar pressed and not already recording
-      // Ignore if user is typing in an input/textarea
-      if (e.code === 'Space' && !isRecording && 
-          !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
-        e.preventDefault();
-        startRecording();
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && isRecording) {
-        e.preventDefault();
-        stopRecording();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [isRecording, startRecording, stopRecording]);
 
   if (isCheckingProfile) {
       return (
@@ -300,21 +268,21 @@ export default function ChatPage() {
                     )}
                 </Button>
 
-                <div className="relative flex-1">
-                     <textarea 
-                        value={input} 
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder={isRecording ? "Listening..." : "Type a message..."}
-                        className="flex min-h-[40px] w-full rounded-md border border-blue-100 bg-white/80 px-3 py-2 text-sm text-blue-900 placeholder:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                        rows={1}
-                        disabled={isRecording}
-                    />
-                </div>
+                <input 
+                    ref={inputRef}
+                    type="text"
+                    placeholder={isRecording ? "Listening..." : "Type a message..."}
+                    className="flex-1 rounded-full border border-blue-100 bg-white/80 px-4 py-2 text-sm text-blue-900 placeholder:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50"
+                    disabled={isRecording}
+                />
 
                 <Button 
                     size="icon" 
-                    onClick={() => handleSend(input)} 
-                    disabled={isRecording || !input.trim()}
+                    onClick={() => {
+                      const text = inputRef.current?.value || '';
+                      handleSend(text);
+                    }} 
+                    disabled={isRecording}
                     className="bg-blue-500 hover:bg-blue-600 text-white rounded-full h-10 w-10 shrink-0 shadow-md transition-transform hover:scale-105"
                 >
                     <Send className="h-4 w-4" />

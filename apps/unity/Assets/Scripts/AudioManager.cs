@@ -65,11 +65,18 @@ public class AudioManager : MonoBehaviour
         try
         {
             byte[] audioBytes = Convert.FromBase64String(base64Audio);
+            Debug.Log($"AudioManager: Decoded {audioBytes.Length} bytes of audio data");
+            
             AudioClip clip = CreateAudioClipFromPCM(audioBytes);
             
             if (clip != null)
             {
+                Debug.Log($"AudioManager: Created clip - samples={clip.samples}, length={clip.length:F2}s, channels={clip.channels}");
                 PlayAudioClip(clip);
+            }
+            else
+            {
+                Debug.LogError("AudioManager: Failed to create AudioClip from PCM");
             }
         }
         catch (Exception e)
@@ -232,14 +239,24 @@ public class AudioManager : MonoBehaviour
     /// <summary>
     /// Get current audio amplitude for lip sync.
     /// Returns 0-1 value based on current audio output.
+    /// Uses AudioClip.GetData for WebGL compatibility (GetOutputData doesn't work in WebGL).
     /// </summary>
     public float GetCurrentAmplitude()
     {
         if (!isPlaying || audioSource == null || audioSource.clip == null)
             return 0f;
 
-        float[] samples = new float[256];
-        audioSource.GetOutputData(samples, 0);
+        // Use AudioClip.GetData instead of GetOutputData for WebGL compatibility
+        int sampleWindow = 256;
+        int currentSample = audioSource.timeSamples;
+        int startSample = Mathf.Max(0, currentSample - sampleWindow / 2);
+        
+        // Ensure we don't read past the end of the clip
+        if (startSample + sampleWindow > audioSource.clip.samples)
+            startSample = Mathf.Max(0, audioSource.clip.samples - sampleWindow);
+        
+        float[] samples = new float[sampleWindow];
+        audioSource.clip.GetData(samples, startSample);
 
         float sum = 0f;
         for (int i = 0; i < samples.Length; i++)

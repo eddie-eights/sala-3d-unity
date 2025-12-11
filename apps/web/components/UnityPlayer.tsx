@@ -2,6 +2,18 @@
 
 import { useUnity } from '@/hooks/useUnity';
 import { Loader2 } from 'lucide-react';
+import { forwardRef, useImperativeHandle } from 'react';
+
+export interface UnityPlayerRef {
+  speakWithAudio: (base64Audio: string) => void;
+  speakWithWav: (base64Wav: string) => void;
+  speak: (text: string) => void;
+  stopSpeaking: () => void;
+  listen: () => void;
+  think: () => void;
+  idle: () => void;
+  setExpression: (expression: string) => void;
+}
 
 interface UnityPlayerProps {
   className?: string;
@@ -12,20 +24,28 @@ interface UnityPlayerProps {
   onCharacterStateChanged?: (state: string) => void;
 }
 
-export function UnityPlayer({
+export const UnityPlayer = forwardRef<UnityPlayerRef, UnityPlayerProps>(({
   className = '',
   buildPath,
   buildName,
   onReady,
   onCharacterFinishedSpeaking,
   onCharacterStateChanged,
-}: UnityPlayerProps) {
+}, ref) => {
   const {
     canvasRef,
     isLoading,
     loadingProgress,
     error,
     isReady,
+    speakWithAudio,
+    speakWithWav,
+    speak,
+    stopSpeaking,
+    listen,
+    think,
+    idle,
+    setExpression,
   } = useUnity({
     buildPath,
     buildName,
@@ -33,6 +53,18 @@ export function UnityPlayer({
     onCharacterFinishedSpeaking,
     onCharacterStateChanged,
   });
+
+  // Expose control methods via ref
+  useImperativeHandle(ref, () => ({
+    speakWithAudio,
+    speakWithWav,
+    speak,
+    stopSpeaking,
+    listen,
+    think,
+    idle,
+    setExpression,
+  }), [speakWithAudio, speakWithWav, speak, stopSpeaking, listen, think, idle, setExpression]);
 
   if (error) {
     return (
@@ -70,6 +102,7 @@ export function UnityPlayer({
         ref={canvasRef}
         tabIndex={-1}
         className="w-full h-full"
+        onFocus={(e) => e.target.blur()}
         style={{ 
           display: isReady ? 'block' : 'none',
           background: 'transparent',
@@ -77,7 +110,10 @@ export function UnityPlayer({
       />
     </div>
   );
-}
+});
+
+UnityPlayer.displayName = 'UnityPlayer';
 
 // Export hook for external control
 export { useUnity } from '@/hooks/useUnity';
+

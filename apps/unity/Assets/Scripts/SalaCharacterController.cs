@@ -57,6 +57,14 @@ public class SalaCharacterController : MonoBehaviour
 
     private void Start()
     {
+        // TEST: Disable Animator to see if it's overriding blendshapes
+        Animator animator = GetComponent<Animator>();
+        if (animator != null)
+        {
+            Debug.Log("SalaCharacterController: Disabling Animator for lip-sync test");
+            animator.enabled = false;
+        }
+        
         // Subscribe to audio events
         if (audioManager != null)
         {

@@ -269,7 +269,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c48ca1e1f78a24e25939583031617fb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VRMModel
-  faceRenderer: {fileID: 0}
+  faceRenderer: {fileID: 1750244908}
   mouthA: -1
   mouthI: -1
   mouthU: -1
@@ -293,6 +293,11 @@ MonoBehaviour:
   lipSyncController: {fileID: 0}
   typingSpeed: 0.05
   autoSetupComponents: 1
+--- !u!137 &1750244908 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 7140606858727328969, guid: 9398e7a6c3fa44010a291df12b70a902, type: 3}
+  m_PrefabInstance: {fileID: 2089539126}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2061653789
 GameObject:
   m_ObjectHideFlags: 0
@@ -453,6 +458,10 @@ PrefabInstance:
       propertyPath: m_AABB.m_Extent.z
       value: 0.12785634
       objectReference: {fileID: 0}
+    - target: {fileID: 3779129587364337969, guid: 9398e7a6c3fa44010a291df12b70a902, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.0682
+      objectReference: {fileID: 0}
     - target: {fileID: 5159078012444724336, guid: 9398e7a6c3fa44010a291df12b70a902, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -520,6 +529,38 @@ PrefabInstance:
     - target: {fileID: 7140606858727328969, guid: 9398e7a6c3fa44010a291df12b70a902, type: 3}
       propertyPath: m_AABB.m_Extent.z
       value: 0.07247748
+      objectReference: {fileID: 0}
+    - target: {fileID: 7140606858727328969, guid: 9398e7a6c3fa44010a291df12b70a902, type: 3}
+      propertyPath: m_BlendShapeWeights.Array.size
+      value: 57
+      objectReference: {fileID: 0}
+    - target: {fileID: 7140606858727328969, guid: 9398e7a6c3fa44010a291df12b70a902, type: 3}
+      propertyPath: 'm_BlendShapeWeights.Array.data[33]'
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7140606858727328969, guid: 9398e7a6c3fa44010a291df12b70a902, type: 3}
+      propertyPath: 'm_BlendShapeWeights.Array.data[39]'
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7140606858727328969, guid: 9398e7a6c3fa44010a291df12b70a902, type: 3}
+      propertyPath: 'm_BlendShapeWeights.Array.data[40]'
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7140606858727328969, guid: 9398e7a6c3fa44010a291df12b70a902, type: 3}
+      propertyPath: 'm_BlendShapeWeights.Array.data[41]'
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7140606858727328969, guid: 9398e7a6c3fa44010a291df12b70a902, type: 3}
+      propertyPath: 'm_BlendShapeWeights.Array.data[42]'
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7140606858727328969, guid: 9398e7a6c3fa44010a291df12b70a902, type: 3}
+      propertyPath: 'm_BlendShapeWeights.Array.data[43]'
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7140606858727328969, guid: 9398e7a6c3fa44010a291df12b70a902, type: 3}
+      propertyPath: 'm_BlendShapeWeights.Array.data[44]'
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

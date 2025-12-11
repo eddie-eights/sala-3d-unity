@@ -2,6 +2,25 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 
+// CRITICAL: Add keyboard event interception SYNCHRONOUSLY at module load
+// This MUST run before Unity's framework.js loads to prevent it from capturing keyboard input
+if (typeof window !== 'undefined') {
+  const preventUnityKeyboardCapture = (e: KeyboardEvent) => {
+    const target = e.target as HTMLElement;
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+      e.stopImmediatePropagation();
+    }
+  };
+  
+  // Try both window AND document level
+  window.addEventListener('keydown', preventUnityKeyboardCapture, { capture: true });
+  window.addEventListener('keyup', preventUnityKeyboardCapture, { capture: true });
+  window.addEventListener('keypress', preventUnityKeyboardCapture, { capture: true });
+  document.addEventListener('keydown', preventUnityKeyboardCapture, { capture: true });
+  document.addEventListener('keyup', preventUnityKeyboardCapture, { capture: true });
+  document.addEventListener('keypress', preventUnityKeyboardCapture, { capture: true });
+}
+
 declare global {
   interface Window {
     createUnityInstance: (
@@ -82,6 +101,49 @@ export function useUnity(options: UseUnityOptions = {}) {
     };
   }, [onCharacterFinishedSpeaking, onCharacterStateChanged, onAudioProgress]);
 
+  // Resume AudioContext on first user interaction to prevent warnings
+  useEffect(() => {
+    let resumed = false;
+    
+    const resumeAudioContext = () => {
+      if (resumed) return;
+      resumed = true;
+      
+      // Resume all AudioContext instances
+      const audioContexts = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (audioContexts) {
+        // Try to resume any existing audio contexts
+        const allContexts = document.querySelectorAll('canvas');
+        allContexts.forEach(() => {
+          try {
+            // Create and immediately resume a context to unlock audio
+            const ctx = new audioContexts();
+            if (ctx.state === 'suspended') {
+              ctx.resume().catch(() => {});
+            }
+          } catch (e) {
+            // Ignore errors
+          }
+        });
+      }
+      
+      // Remove listeners after first interaction
+      document.removeEventListener('click', resumeAudioContext);
+      document.removeEventListener('touchstart', resumeAudioContext);
+      document.removeEventListener('keydown', resumeAudioContext);
+    };
+
+    document.addEventListener('click', resumeAudioContext);
+    document.addEventListener('touchstart', resumeAudioContext);
+    document.addEventListener('keydown', resumeAudioContext);
+
+    return () => {
+      document.removeEventListener('click', resumeAudioContext);
+      document.removeEventListener('touchstart', resumeAudioContext);
+      document.removeEventListener('keydown', resumeAudioContext);
+    };
+  }, []);
+
   // Store callbacks in refs to prevent effect re-runs
   const onReadyRef = useRef(onReady);
   const onErrorRef = useRef(onError);
@@ -146,6 +208,15 @@ export function useUnity(options: UseUnityOptions = {}) {
         }
 
         instanceRef.current = instance;
+        // Expose to window for debugging
+        (window as unknown as { unityInstance: UnityInstance }).unityInstance = instance;
+        
+        // IMPORTANT: Disable Unity's keyboard capture so HTML inputs work
+        // Unity WebGL captures all keyboard input by default, which breaks HTML forms
+        if ((instance as any).Module?.WebGLInput) {
+          (instance as any).Module.WebGLInput.captureAllKeyboardInput = false;
+        }
+        
         setIsLoading(false);
         setIsReady(true);
         onReadyRef.current?.();
