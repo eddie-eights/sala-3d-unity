@@ -106,6 +106,7 @@ export default function LoginPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
+                                autoComplete="username webauthn"
                                 />
                             </div>
                         </div>

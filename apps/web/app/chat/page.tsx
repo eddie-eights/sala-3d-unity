@@ -27,15 +27,15 @@ export default function ChatPage() {
                 } else {
                     setIsCheckingProfile(false);
                 }
+            } else if (res.status === 401) {
+                 // Not authenticated - redirect to welcome
+                 router.push('/welcome');
             } else {
-                 // If auth fails/network error, usually middleware handles it, 
-                 // but let's be safe and stop loading to show content (or redirect login)
-                 // Assuming middleware handles 401.
                  setIsCheckingProfile(false);
             }
         } catch (error) {
             console.error("Profile check failed", error);
-            setIsCheckingProfile(false);
+            router.push('/welcome');
         }
     };
     checkProfile();

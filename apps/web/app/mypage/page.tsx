@@ -153,7 +153,7 @@ export default function MyPage() {
             fetchOptions: {
                 onSuccess: () => {
                     toast.success("Logged out successfully");
-                    router.push("/login");
+                    router.push("/welcome");
                 },
             },
         });

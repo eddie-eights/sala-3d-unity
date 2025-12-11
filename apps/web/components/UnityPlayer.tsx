@@ -5,6 +5,8 @@ import { Loader2 } from 'lucide-react';
 
 interface UnityPlayerProps {
   className?: string;
+  buildPath?: string;
+  buildName?: string;
   onReady?: () => void;
   onCharacterFinishedSpeaking?: () => void;
   onCharacterStateChanged?: (state: string) => void;
@@ -12,6 +14,8 @@ interface UnityPlayerProps {
 
 export function UnityPlayer({
   className = '',
+  buildPath,
+  buildName,
   onReady,
   onCharacterFinishedSpeaking,
   onCharacterStateChanged,
@@ -23,6 +27,8 @@ export function UnityPlayer({
     error,
     isReady,
   } = useUnity({
+    buildPath,
+    buildName,
     onReady,
     onCharacterFinishedSpeaking,
     onCharacterStateChanged,
