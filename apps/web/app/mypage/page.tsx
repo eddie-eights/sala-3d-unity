@@ -29,8 +29,10 @@ export default function MyPage() {
     }, []);
 
     const handleAddPasskey = async () => {
+        // Use email as the passkey display name (shown in OS credential manager)
+        const passkeyName = formData.email || "My Passkey";
         const res = await authClient.passkey.addPasskey({
-            name: "My Passkey",
+            name: passkeyName,
         });
         if (res?.data) {
              setHasPasskey(true);
@@ -50,6 +52,7 @@ export default function MyPage() {
         currentResidence: "",
         hobbies: "",
         name: "", // Display purpose
+        email: "", // For passkey display name
     });
 
     const [birthYear, setBirthYear] = useState("");

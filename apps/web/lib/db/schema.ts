@@ -72,11 +72,13 @@ export const passkey = pgTable("passkey", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id),
-  webauthnUserID: text("webauthn_user_id").notNull(),
+  webauthnUserID: text("webauthn_user_id"), // Nullable - not sent by better-auth v1.4.6
+  credentialID: text("credential_id").notNull(),
   counter: integer("counter").notNull(),
   deviceType: text("device_type").notNull(),
   backedUp: boolean("backed_up").notNull(),
   transports: text("transports"),
+  aaguid: text("aaguid"),
   createdAt: timestamp("created_at"),
 });
 

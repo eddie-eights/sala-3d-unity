@@ -29,6 +29,11 @@ export const auth = betterAuth({
     },
     plugins: [
         nextCookies(),
-        passkey()
-    ]
+        passkey({
+            rpID: "localhost",
+            origin: "http://localhost:3000",
+            rpName: "Sala 3D",
+        })
+    ],
+    debug: true, // Enable debug logs to troubleshoot 500 error
 });
