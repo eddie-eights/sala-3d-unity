@@ -56,7 +56,7 @@ export default function ChatPage() {
   }, [router]);
 
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
-    { role: 'assistant', content: 'こんにちは！私はサラだよ。何か聞きたいことある？' }
+    { role: 'assistant', content: 'お疲れさま！　何かいいことあった？' }
   ]);
   const [isFloating, setIsFloating] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
@@ -143,11 +143,23 @@ export default function ChatPage() {
     isRecording, 
     isSupported,
     toggleRecording,
+    startRecording,
+    stopRecording,
   } = useVoiceInput({
     language: 'ja-JP',
+    onInterimTranscript: (text) => {
+      // Show interim text in input field while speaking
+      if (inputRef.current) {
+        inputRef.current.value = text;
+      }
+    },
     onTranscript: (text) => {
       if (text.trim()) {
         handleSend(text);
+      }
+      // Clear input after sending
+      if (inputRef.current) {
+        inputRef.current.value = '';
       }
     },
     onError: (error) => {
@@ -158,6 +170,34 @@ export default function ChatPage() {
       }
     },
   });
+
+  // Spacebar hold-to-talk
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only trigger if spacebar pressed and not already recording
+      // Ignore if user is typing in an input/textarea
+      if (e.code === 'Space' && !isRecording && isSupported &&
+          !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+        e.preventDefault();
+        startRecording();
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && isRecording) {
+        e.preventDefault();
+        stopRecording();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [isRecording, isSupported, startRecording, stopRecording]);
 
   if (isCheckingProfile) {
       return (
@@ -199,7 +239,7 @@ export default function ChatPage() {
         {/* Header - Only visible when NOT floating, OR we need a toggle button somewhere */}
         {!isFloating && (
              <div className="p-4 border-b border-white/40 flex items-center justify-between">
-                <h2 className="font-bold text-blue-900">Chat with Sala</h2>
+                <h2 className="font-bold text-blue-900">Sala</h2>
                 <div className="flex items-center gap-2">
                      <div className={`h-2 w-2 rounded-full ${isRecording ? 'bg-red-500 animate-ping' : 'bg-green-400'}`} />
                      <Link href="/mypage">
