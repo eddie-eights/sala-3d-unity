@@ -6,8 +6,15 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 // This MUST run before Unity's framework.js loads to prevent it from capturing keyboard input
 if (typeof window !== 'undefined') {
   const preventUnityKeyboardCapture = (e: KeyboardEvent) => {
-    const target = e.target as HTMLElement;
+    const target = e.target as HTMLInputElement;
     if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+      // Handle Ctrl+Enter or Cmd+Enter for form submission
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        // Call global submit function if available
+        if ((window as any)._submitChatInput) {
+          (window as any)._submitChatInput();
+        }
+      }
       e.stopImmediatePropagation();
     }
   };

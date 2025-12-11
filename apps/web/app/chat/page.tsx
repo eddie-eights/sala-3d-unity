@@ -56,7 +56,7 @@ export default function ChatPage() {
   }, [router]);
 
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
-    { role: 'assistant', content: 'お疲れさま！　何かいいことあった？' }
+    { role: 'assistant', content: 'お疲れさま！\n何かいいことあった？' }
   ]);
   const [isFloating, setIsFloating] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
@@ -199,6 +199,21 @@ export default function ChatPage() {
     };
   }, [isRecording, isSupported, startRecording, stopRecording]);
 
+  // Listen for custom submit-input event (dispatched by Ctrl+Enter handler in useUnity)
+  useEffect(() => {
+    // Register global submit function for Ctrl+Enter
+    (window as any)._submitChatInput = () => {
+      const text = inputRef.current?.value || '';
+      if (text.trim()) {
+        handleSend(text);
+      }
+    };
+    
+    return () => {
+      delete (window as any)._submitChatInput;
+    };
+  }, [handleSend]);
+
   if (isCheckingProfile) {
       return (
           <div className="flex h-screen items-center justify-center bg-blue-50/50">
@@ -274,7 +289,7 @@ export default function ChatPage() {
                 <div className="flex flex-col gap-4">
                     {messages.map((m, i) => (
                         <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
+                            <div className={`max-w-[85%] rounded-2xl px-4 py-2 text-sm shadow-sm whitespace-pre-line ${
                                 m.role === 'user' 
                                 ? 'bg-blue-500 text-white rounded-br-none' 
                                 : 'bg-white text-blue-900 rounded-bl-none border border-blue-100'
