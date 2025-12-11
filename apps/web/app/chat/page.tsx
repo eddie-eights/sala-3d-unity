@@ -95,6 +95,9 @@ export default function ChatPage() {
       const chatData = await chatResponse.json();
       const aiText = chatData.text;
 
+      // Stop thinking indicator before showing response
+      setIsThinking(false);
+
       // Add AI response to messages
       setMessages(prev => [...prev, { role: 'assistant', content: aiText }]);
 
