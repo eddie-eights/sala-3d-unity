@@ -36,3 +36,17 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# Unity
+apps/unity/Library/
+apps/unity/Temp/
+apps/unity/Logs/
+apps/unity/UserSettings/
+apps/unity/obj/
+apps/unity/*.csproj
+apps/unity/*.sln
+apps/unity/.vsconfig
+apps/unity/*.pidb
+apps/unity/*.unityproj
+apps/unity/*.apk
+apps/unity/*.aab
