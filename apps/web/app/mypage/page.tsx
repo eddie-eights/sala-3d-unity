@@ -19,6 +19,7 @@ export default function MyPage() {
     const [hasPasskey, setHasPasskey] = useState(true); // Default true to prevent flash
 
     useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         authClient.passkey.listUserPasskeys().then((res: any) => {
             if (res.data && res.data.length > 0) {
                 setHasPasskey(true);
@@ -141,6 +142,7 @@ export default function MyPage() {
             setTimeout(() => {
                 router.push('/chat');
             }, 1000);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
             setError(e.message);
         } finally {
@@ -260,7 +262,7 @@ export default function MyPage() {
                                             required
                                         >
                                             <option value="" disabled>Year</option>
-                                            {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                                            {years.map(year => (
                                                 <option key={year} value={year}>{year}</option>
                                             ))}
                                         </select>
@@ -282,7 +284,7 @@ export default function MyPage() {
                                             required
                                         >
                                             <option value="" disabled>Month</option>
-                                            {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                                            {months.map(month => (
                                                 <option key={month} value={month}>{month}</option>
                                             ))}
                                         </select>
@@ -304,7 +306,7 @@ export default function MyPage() {
                                             required
                                         >
                                             <option value="" disabled>Day</option>
-                                            {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                                            {days.map(day => (
                                                 <option key={day} value={day}>{day}</option>
                                             ))}
                                         </select>

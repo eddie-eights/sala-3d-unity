@@ -94,18 +94,7 @@ public class LipSyncController : MonoBehaviour
 
     private void UpdateAmplitudeBasedLipSync()
     {
-        // TEST MODE: Force mouth movement to verify visual control
-        bool testMode = true;
-        if (testMode)
-        {
-            float sine = (Mathf.Sin(Time.time * 5f) + 1f) * 0.5f; // 0 to 1, slow oscillation
-            if (Time.frameCount % 60 == 0)
-            {
-                Debug.Log($"LipSyncController [TEST MODE]: Sine={sine:F2}");
-            }
-            vrmModel.SetMouthWeights(sine, 0, 0, 0, 0);
-            return;
-        }
+
 
         // Get current audio amplitude
         float rawAmplitude = 0f;
@@ -122,11 +111,7 @@ public class LipSyncController : MonoBehaviour
         currentAmplitude = Mathf.Lerp(currentAmplitude, rawAmplitude * sensitivity, Time.deltaTime / smoothing);
         currentAmplitude = Mathf.Clamp01(currentAmplitude);
 
-        // Debug log every 0.5 seconds
-        if (Time.frameCount % 30 == 0)
-        {
-            Debug.Log($"LipSync Update: rawAmplitude={rawAmplitude:F3}, currentAmplitude={currentAmplitude:F3}, vrmModel={(vrmModel != null ? "OK" : "NULL")}");
-        }
+
 
         // Map to mouth openness
         float openness = Mathf.Lerp(minOpenness, maxOpenness, currentAmplitude);
@@ -176,7 +161,6 @@ public class LipSyncController : MonoBehaviour
     private void OnAudioStarted()
     {
         isActive = true;
-        Debug.Log("LipSync: Started");
     }
 
     private void OnAudioFinished()
@@ -196,7 +180,6 @@ public class LipSyncController : MonoBehaviour
             targetWeights[i] = 0f;
         }
         
-        Debug.Log("LipSync: Stopped");
     }
 
     /// <summary>

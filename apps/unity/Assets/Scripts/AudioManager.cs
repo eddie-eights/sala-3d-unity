@@ -58,20 +58,20 @@ public class AudioManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(base64Audio))
         {
-            Debug.LogWarning("AudioManager: Received empty audio data");
+
             return;
         }
 
         try
         {
             byte[] audioBytes = Convert.FromBase64String(base64Audio);
-            Debug.Log($"AudioManager: Decoded {audioBytes.Length} bytes of audio data");
+
             
             AudioClip clip = CreateAudioClipFromPCM(audioBytes);
             
             if (clip != null)
             {
-                Debug.Log($"AudioManager: Created clip - samples={clip.samples}, length={clip.length:F2}s, channels={clip.channels}");
+
                 PlayAudioClip(clip);
             }
             else
@@ -92,7 +92,7 @@ public class AudioManager : MonoBehaviour
     {
         if (string.IsNullOrEmpty(base64Wav))
         {
-            Debug.LogWarning("AudioManager: Received empty WAV data");
+
             return;
         }
 

@@ -61,7 +61,7 @@ public class SalaCharacterController : MonoBehaviour
         Animator animator = GetComponent<Animator>();
         if (animator != null)
         {
-            Debug.Log("SalaCharacterController: Disabling Animator for lip-sync test");
+
             animator.enabled = false;
         }
         
@@ -114,7 +114,7 @@ public class SalaCharacterController : MonoBehaviour
     /// <param name="base64Audio">Base64 encoded audio</param>
     public void SpeakWithAudio(string base64Audio)
     {
-        Debug.Log($"Sala: SpeakWithAudio received ({base64Audio.Length} chars)");
+
         
         SetState(CharacterState.Talking);
         
@@ -130,7 +130,7 @@ public class SalaCharacterController : MonoBehaviour
     /// </summary>
     public void SpeakWithWav(string base64Wav)
     {
-        Debug.Log($"Sala: SpeakWithWav received ({base64Wav.Length} chars)");
+
         
         SetState(CharacterState.Talking);
         
@@ -147,7 +147,7 @@ public class SalaCharacterController : MonoBehaviour
     /// <param name="text">The text being spoken</param>
     public void Speak(string text)
     {
-        Debug.Log($"Sala Speaking: {text}");
+
         SetState(CharacterState.Talking);
         
         // Notify React of state change
@@ -161,7 +161,7 @@ public class SalaCharacterController : MonoBehaviour
     /// </summary>
     public void StopSpeaking()
     {
-        Debug.Log("Sala Stopped Speaking");
+
         
         if (audioManager != null)
         {
@@ -181,7 +181,7 @@ public class SalaCharacterController : MonoBehaviour
     /// </summary>
     public void Listen()
     {
-        Debug.Log("Sala Listening");
+
         SetState(CharacterState.Listening);
         
         #if UNITY_WEBGL && !UNITY_EDITOR
@@ -194,7 +194,7 @@ public class SalaCharacterController : MonoBehaviour
     /// </summary>
     public void Think()
     {
-        Debug.Log("Sala Thinking");
+
         SetState(CharacterState.Thinking);
         
         #if UNITY_WEBGL && !UNITY_EDITOR
@@ -207,7 +207,7 @@ public class SalaCharacterController : MonoBehaviour
     /// </summary>
     public void Idle()
     {
-        Debug.Log("Sala Idle");
+
         SetState(CharacterState.Idle);
     }
 
@@ -254,12 +254,12 @@ public class SalaCharacterController : MonoBehaviour
     // Audio event handlers
     private void OnTTSAudioStarted()
     {
-        Debug.Log("Sala: TTS Audio Started");
+
     }
 
     private void OnTTSAudioFinished()
     {
-        Debug.Log("Sala: TTS Audio Finished");
+
         SetState(CharacterState.Idle);
 
         #if UNITY_WEBGL && !UNITY_EDITOR

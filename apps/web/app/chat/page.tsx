@@ -59,7 +59,7 @@ export default function ChatPage() {
   ]);
   const [isFloating, setIsFloating] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [, setIsSpeaking] = useState(false);
 
   // Input ref for uncontrolled input (fixes Japanese IME issues)
   const inputRef = useRef<HTMLInputElement>(null);
@@ -201,7 +201,7 @@ export default function ChatPage() {
   // Listen for custom submit-input event (dispatched by Ctrl+Enter handler in useUnity)
   useEffect(() => {
     // Register global submit function for Ctrl+Enter
-    (window as any)._submitChatInput = () => {
+    window._submitChatInput = () => {
       const text = inputRef.current?.value || '';
       if (text.trim()) {
         handleSend(text);
@@ -209,13 +209,14 @@ export default function ChatPage() {
     };
     
     return () => {
-      delete (window as any)._submitChatInput;
+      window._submitChatInput = undefined;
     };
   }, [handleSend]);
 
   if (isCheckingProfile) {
       return (
           <div className="flex h-screen items-center justify-center bg-blue-50/50">
+              {/* @ts-expect-error: Lucide icon type mismatch with React 18 types */}
               <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
               <span className="ml-3 text-blue-600 font-medium">Loading your space...</span>
           </div>
@@ -256,6 +257,7 @@ export default function ChatPage() {
                 <h2 className="font-bold text-blue-900">Sala</h2>
                 <div className="flex items-center gap-2">
                      <div className={`h-2 w-2 rounded-full ${isRecording ? 'bg-red-500 animate-ping' : 'bg-green-400'}`} />
+                     {/* @ts-expect-error: React type mismatch */}
                      <Link href="/mypage">
                         <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full hover:bg-blue-100/50">
                             <Home className="h-4 w-4 text-blue-500" />

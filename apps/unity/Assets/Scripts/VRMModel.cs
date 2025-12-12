@@ -59,7 +59,7 @@ public class VRMModel : MonoBehaviour
             
             if (vrmInstance != null)
             {
-                Debug.Log($"VRMModel: Auto-detected Vrm10Instance on '{vrmInstance.gameObject.name}'");
+
             }
             else
             {
@@ -78,7 +78,7 @@ public class VRMModel : MonoBehaviour
     {
         // ALWAYS search for Face by name to avoid serialization issues in WebGL
         // The serialized reference from Editor may not point to the same instance at runtime
-        Debug.Log($"VRMModel: Searching for Face object by name...");
+
         
         // Try to find by name first (more reliable in WebGL)
         GameObject faceObj = GameObject.Find("Face");
@@ -88,7 +88,6 @@ public class VRMModel : MonoBehaviour
             if (renderer != null && renderer.sharedMesh != null && renderer.sharedMesh.blendShapeCount > 0)
             {
                 faceRenderer = renderer;
-                Debug.Log($"VRMModel: Found Face by GameObject.Find - {renderer.sharedMesh.blendShapeCount} blendshapes");
             }
         }
         
@@ -97,17 +96,12 @@ public class VRMModel : MonoBehaviour
         {
             Debug.Log($"VRMModel: Face not found by name, searching in children of {gameObject.name}...");
             var renderers = GetComponentsInChildren<SkinnedMeshRenderer>();
-            Debug.Log($"VRMModel: Found {renderers.Length} SkinnedMeshRenderers");
             
             foreach (var renderer in renderers)
             {
                 if (renderer.sharedMesh != null && renderer.sharedMesh.blendShapeCount > 0)
                 {
-                    Debug.Log($"VRMModel: Renderer '{renderer.gameObject.name}' has {renderer.sharedMesh.blendShapeCount} blendshapes");
-                    if (renderer.sharedMesh.blendShapeCount > 10)
-                    {
                         faceRenderer = renderer;
-                        Debug.Log($"VRMModel: Selected '{renderer.gameObject.name}' as faceRenderer");
                         break;
                     }
                 }
@@ -138,7 +132,7 @@ public class VRMModel : MonoBehaviour
                 mouthO = i;
         }
 
-        Debug.Log($"VRMModel: Auto-detected blendshapes on '{faceRenderer.gameObject.name}' - A:{mouthA}, I:{mouthI}, U:{mouthU}, E:{mouthE}, O:{mouthO}");
+
     }
 
     /// <summary>
@@ -147,11 +141,7 @@ public class VRMModel : MonoBehaviour
     /// </summary>
     public void SetMouthWeights(float a, float i, float u, float e, float o)
     {
-        // Debug log every 30 frames
-        if (Time.frameCount % 30 == 0)
-        {
-            Debug.Log($"VRMModel.SetMouthWeights: A={a:F2}, I={i:F2}, U={u:F2}, E={e:F2}, O={o:F2}");
-        }
+
 
 
         // Use VRM SDK Expression API - this is the ONLY way to control mouth in VRM 1.0
@@ -171,10 +161,7 @@ public class VRMModel : MonoBehaviour
                 if (mouthE >= 0) expression.SetWeight(ExpressionKey.Ee, e);
                 if (mouthO >= 0) expression.SetWeight(ExpressionKey.Oh, o);
                 
-                if (Time.frameCount % 60 == 0)
-                {
-                    Debug.Log($"VRMModel: Set VRM Expression weights - Aa={a:F2}, Ih={i:F2}, Ou={u:F2}, Ee={e:F2}, Oh={o:F2}");
-                }
+
                 return;
             }
             catch (System.Exception ex)
@@ -198,11 +185,7 @@ public class VRMModel : MonoBehaviour
         if (mouthE >= 0) faceRenderer.SetBlendShapeWeight(mouthE, e * 100f);
         if (mouthO >= 0) faceRenderer.SetBlendShapeWeight(mouthO, o * 100f);
         
-        if (Time.frameCount % 60 == 0 && mouthA >= 0)
-        {
-            float actualA = faceRenderer.GetBlendShapeWeight(mouthA);
-            Debug.Log($"VRMModel.Fallback: Set A={a*100:F0}, Got A={actualA:F0}");
-        }
+
     }
 
     /// <summary>
