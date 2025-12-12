@@ -14,81 +14,86 @@
 
 ## Phase 1: Backend (Next.js API + Supabase + Auth)
 
-- [ ] Create Supabase Project (Postgres)
-- [ ] Schema Definition for Drizzle
-  - [ ] `users` table (Profile Info)
-  - [ ] `user_settings` table (App Settings)
-  - [ ] `character_states` table (User-specific Character Personality State)
-  - [ ] `chat_logs` table (Conversation Logs or Summary)
-- [ ] Drizzle + Supabase Connection Settings
-- [ ] Better Auth Introduction
-  - [ ] Email/Password or OAuth (Decide which to use)
-  - [ ] Session Management (Cookie-based)
-- [ ] API Route Design (Next.js Route Handlers)
-  - [ ] `/api/auth/*` Authentication
-  - [ ] `/api/profile` User Profile Get / Update
-  - [ ] `/api/chat` Character Conversation Endpoint
+- [x] Create Supabase Project (Postgres)
+- [x] Schema Definition for Drizzle
+  - [x] `users` table (Profile Info)
+  - [x] `user_settings` table (App Settings)
+  - [x] `character_states` table (User-specific Character Personality State)
+  - [x] `chat_logs` table (Conversation Logs or Summary)
+- [x] Drizzle + Supabase Connection Settings
+- [x] Better Auth Introduction
+  - [x] Email/Password or OAuth (Both implemented: email/password + Google OAuth)
+  - [x] Session Management (Cookie-based)
+- [x] API Route Design (Next.js Route Handlers)
+  - [x] `/api/auth/*` Authentication
+  - [x] `/api/profile` User Profile Get / Update
+  - [x] `/api/chat` Character Conversation Endpoint
     - Input: UserID, Message, Context Info
     - Process: Get User Info & Character State from DB → Query OpenAI → Save Response
-  - [ ] `/api/tts` Voice Generation
-  - [ ] `/api/stt` Voice → Text (If necessary)
+  - [x] `/api/tts` Voice Generation (text-to-speech)
+  - [x] `/api/stt` Voice → Text (speech-to-text)
 - [ ] "Character Personality Drift" Logic Foundation
   - [ ] Function to update `character_states` based on conversation result
   - [ ] Mechanism to reflect character state in OpenAI Prompt
-- [ ] Add Service Layer Tests with Vitest
+- [x] Add Service Layer Tests with Vitest
 
 ---
 
 ## Phase 2: Web UI (Next.js)
 
-- [ ] Create Next.js Project (App Router, TypeScript)
-- [ ] Tailwind / shadcn/ui Setup
-- [ ] Page Structure
-  - [ ] `/` Landing
-  - [ ] `/login` / `/signup`
-  - [ ] `/chat` Chat + 3D Embedding
-  - [ ] `/settings` User Profile / Settings Edit
-- [ ] Chat Component
-  - [ ] Text Input
-  - [ ] History Display
-  - [ ] Coordinate with API `/api/chat`
-- [ ] User Settings Screen
-  - [ ] DOB / Gender / Hometown / Current Residence / Hobbies etc.
-  - [ ] Call API `/api/profile` on Save
-- [ ] Unity WebGL Embedding
-  - [ ] Place Unity Build in public
-  - [ ] Display via iframe or custom wrapper component
-  - [ ] Design Message Coordination between Web ↔ Unity (postMessage etc.)
-- [ ] Add UI Component Tests with Vitest + Testing Library
+- [x] Create Next.js Project (App Router, TypeScript)
+- [x] Tailwind / shadcn/ui Setup
+- [x] Page Structure
+  - [x] `/` Landing
+  - [x] `/login` / `/signup`
+  - [x] `/chat` Chat + 3D Embedding
+  - [x] `/mypage` (added) User Profile
+  - [x] `/welcome` (added) Welcome screen
+- [x] Chat Component
+  - [x] Text Input
+  - [x] History Display
+  - [x] Coordinate with API `/api/chat`
+- [x] User Settings Screen
+  - [x] DOB / Gender / Hometown / Current Residence / Hobbies etc.
+  - [x] Call API `/api/profile` on Save
+- [x] Unity WebGL Embedding
+  - [x] Place Unity Build in public (`unity-build-chat`, `unity-build-welcome`)
+  - [x] Display via custom wrapper component (`UnityPlayer.tsx`)
+  - [x] Design Message Coordination between Web ↔ Unity (speakWithAudio, lipSync control)
+- [x] Add UI Component Tests with Vitest + Testing Library
 
 ---
 
 ## Phase 3: Mobile UI (React Native)
 
-- [ ] Create React Native Project (Expo if needed)
-- [ ] Navigation Structure
-  - [ ] Auth Stack (Login / Signup)
-  - [ ] Main Stack (Chat / Settings / 3D Screen)
+- [x] Create React Native Project (Expo)
+- [x] Navigation Structure
+  - [x] Auth Stack (Login)
+  - [x] Main Stack (Chat / Settings)
 - [ ] API Client
-  - [ ] Implement fetch client to call Next.js API
-- [ ] Chat Screen
-  - [ ] Use same `/api/chat` as Web
-- [ ] Settings Screen
-  - [ ] Coordinate with `/api/profile`
+  - [ ] Implement fetch client to call Next.js API (currently mock only)
+- [x] Chat Screen
+  - [x] UI implemented (but using mock API response)
+- [x] Settings Screen
+  - [x] UI implemented
+- [ ] Connect to real API `/api/chat` and `/api/profile`
 - [ ] Minimum Logic Tests with Vitest or Jest (Optional)
 
 ---
 
 ## Phase 4: Unity (3D Character) Foundation
 
-- [ ] Create Unity Project
-- [ ] Import Model exported from VRoid
-- [ ] Lip-sync / Expression Animation Control
-  - [ ] Simple Lip-sync from Audio Waveform or Text
-- [ ] Animation State (Idle / Talking / Emotion) Implementation
-- [ ] WebGL Build Pipeline
-  - [ ] Organize WebGL Build Output Destination (Next.js public etc.)
-  - [ ] Message API with Browser (JavaScript ↔ Unity)
+- [x] Create Unity Project
+- [x] Import Model exported from VRoid (`sala.vrm`)
+- [x] Lip-sync / Expression Animation Control
+  - [x] `LipSyncController.cs` - Lip-sync from Audio Waveform
+- [x] Animation State (Idle / Talking / Emotion) Implementation
+  - [x] `SalaCharacterController.cs`
+  - [x] `VRMModel.cs`
+  - [x] `AudioManager.cs`
+- [x] WebGL Build Pipeline
+  - [x] Organize WebGL Build Output Destination (Next.js public)
+  - [x] Message API with Browser (JavaScript ↔ Unity via UnityPlayer.tsx)
 
 ---
 
