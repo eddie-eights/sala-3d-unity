@@ -68,15 +68,18 @@
 
 - [x] Create React Native Project (Expo)
 - [x] Navigation Structure
-  - [x] Auth Stack (Login)
+  - [x] Auth Stack (Login - Email/Google/Passkey UI)
   - [x] Main Stack (Chat / Settings)
-- [ ] API Client
-  - [ ] Implement fetch client to call Next.js API (currently mock only)
-- [x] Chat Screen
-  - [x] UI implemented (but using mock API response)
+- [x] API Client
+  - [x] Implement fetch client to call Next.js API (`lib/api-client.ts`)
+- [x] Chat Screen (Voice-first, mobile-optimized)
+  - [x] 3D character area (full screen)
+  - [x] Voice input button (primary)
+  - [x] Text input toggle
+  - [x] Chat history modal
 - [x] Settings Screen
   - [x] UI implemented
-- [ ] Connect to real API `/api/chat` and `/api/profile`
+- [ ] Speech-to-Text integration (expo-speech or native)
 - [ ] Minimum Logic Tests with Vitest or Jest (Optional)
 
 ---
