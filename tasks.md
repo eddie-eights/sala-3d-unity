@@ -79,6 +79,8 @@
   - [x] Chat history modal
 - [x] Settings Screen
   - [x] UI implemented
+- [ ] Mobile Google OAuth (requires public URL or ngrok for development)
+- [x] Mobile Passkey Authentication - **Skipped** (Web only, requires development build on mobile)
 - [ ] Speech-to-Text integration (expo-speech or native)
 - [ ] Minimum Logic Tests with Vitest or Jest (Optional)
 
