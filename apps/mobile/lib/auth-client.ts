@@ -76,6 +76,8 @@ export const authClient = {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
+          // Native apps don't send Origin header, but Better Auth requires it
+          'Origin': API_BASE_URL as string,
         },
         body: JSON.stringify({ email, password }),
       });
@@ -119,6 +121,7 @@ export const authClient = {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
+          'Origin': API_BASE_URL as string,
         },
         body: JSON.stringify({ email, password, name }),
       });
@@ -203,6 +206,7 @@ export const authClient = {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Origin': API_BASE_URL as string,
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
       });
@@ -229,6 +233,9 @@ export const authClient = {
     try {
       await fetch(`${API_BASE_URL}/api/auth/sign-out`, {
         method: 'POST',
+        headers: {
+          'Origin': API_BASE_URL as string,
+        },
       });
     } catch (error) {
       console.error('Sign out error:', error);
