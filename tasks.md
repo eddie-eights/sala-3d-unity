@@ -77,6 +77,7 @@
   - [x] Voice input button (primary)
   - [x] Text input toggle
   - [x] Chat history modal
+  - [x] UI Refinements (Icon placement, Linear Gradient)
 - [x] Settings Screen
   - [x] UI implemented
 - [ ] Mobile Google OAuth (requires public URL or ngrok for development)

@@ -11,9 +11,13 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
+  Pressable
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { apiClient } from '../lib/api-client';
+import { User, ArrowLeft, Mic, Send, Keyboard, X, StopCircle, Home, MessageCircle } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 type Message = {
   id: string;
@@ -25,7 +29,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', role: 'assistant', content: 'やっほー！今日はどうしたの？' }
+    { id: '1', role: 'assistant', content: 'お疲れさま！\n何かいいことあった？' }
   ]);
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -41,8 +45,8 @@ export default function ChatScreen() {
     if (isRecording) {
       Animated.loop(
         Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.2, duration: 500, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1.15, duration: 600, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
         ])
       ).start();
     } else {
@@ -90,15 +94,17 @@ export default function ChatScreen() {
     }
   }, [messages, isThinking]);
 
+  const startRecording = () => {
+    setIsRecording(true);
+  };
+
+  const stopRecording = () => {
+    setIsRecording(false);
+    // Here you would implement actual recording stop and speech-to-text
+  };
+
   const handleVoicePress = () => {
-    if (isRecording) {
-      // Stop recording - would integrate with speech-to-text
-      setIsRecording(false);
-      // For now, simulate with a placeholder
-      // In production, this would use expo-speech or a speech recognition library
-    } else {
-      setIsRecording(true);
-    }
+      // No-op for tap, we use press-in/out
   };
 
   const getLastAssistantMessage = () => {
@@ -111,181 +117,569 @@ export default function ChatScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gradient-to-b from-blue-100 to-blue-50">
-      {/* Header - Minimal */}
-      <View className="absolute top-12 left-0 right-0 z-10 flex-row items-center justify-between px-4">
-        <TouchableOpacity 
-          onPress={() => setShowChatHistory(true)}
-          className="h-10 w-10 rounded-full bg-white/80 items-center justify-center shadow-sm"
-        >
-          <Text className="text-blue-600 font-bold text-lg">💬</Text>
-        </TouchableOpacity>
-        
-        <Text className="text-blue-900 font-bold text-lg">Sala</Text>
-        
-        <TouchableOpacity 
-          onPress={() => router.push('/mypage')}
-          className="h-10 w-10 rounded-full bg-white/80 items-center justify-center shadow-sm"
-        >
-          <Text className="text-blue-600 font-bold text-lg">⚙️</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* 3D Character Area - Takes most of the screen */}
-      <View className="flex-1 items-center justify-center">
-        {/* Placeholder for 3D character */}
-        <View className="w-full h-full items-center justify-center bg-gradient-to-b from-blue-100/50 to-transparent">
-          <Text className="text-blue-200 text-6xl font-bold opacity-40">3D</Text>
-          <Text className="text-blue-300 text-xl opacity-40 mt-2">CHARACTER</Text>
+    <LinearGradient
+      colors={['#DBEAFE', '#EFF6FF']} // blue-100 to blue-50
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={{width: 44}} /> {/* Placeholder for balance */}
+          
+          <View style={styles.titleContainer}>
+              <View style={styles.titleIcon}>
+                  <View style={styles.onlineIndicator} />
+              </View>
+              <Text style={styles.headerTitle}>Sala</Text>
+          </View>
+          
+          <TouchableOpacity 
+            onPress={() => router.push('/mypage')}
+            style={styles.headerButton}
+          >
+            <Home size={22} color="#4B5563" />
+          </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Last message bubble - Floating above controls */}
-      {!showTextInput && (
-        <View className="absolute bottom-40 left-4 right-4">
-          <View className="bg-white/90 rounded-2xl px-4 py-3 shadow-lg">
-            <Text className="text-blue-900 text-center">
-              {isThinking ? '考え中...' : getLastAssistantMessage()}
-            </Text>
+        {/* 3D Character Area */}
+        <View style={styles.characterArea}>
+          <View style={styles.placeholderContainer}>
+            <Text style={styles.placeholderText}>3D CHARACTER</Text>
+            <View style={styles.placeholderRing} />
           </View>
         </View>
-      )}
 
-      {/* Bottom Controls */}
-      <View className="pb-8 px-4">
-        {showTextInput ? (
-          // Text Input Mode
-          <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          >
-            <View className="flex-row gap-2 items-end">
+        {/* Floating Message Bubble */}
+        {!showTextInput && (
+          <Animated.View style={styles.floatingMessageContainer}>
+            <View style={styles.floatingMessageContent}>
+               <View style={styles.messageTriangle} />
+               <Text style={styles.floatingMessageText}>
+                  {isThinking ? '考え中...' : getLastAssistantMessage()}
+               </Text>
+            </View>
+          </Animated.View>
+        )}
+
+        {/* Bottom Controls */}
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
+          style={styles.bottomControls}
+        >
+          {showTextInput ? (
+            // Text Input Mode
+            <View style={styles.textInputContainer}>
               <TouchableOpacity 
                 onPress={() => setShowTextInput(false)}
-                className="h-12 w-12 rounded-full bg-gray-200 items-center justify-center"
+                style={styles.modeSwitchButton}
               >
-                <Text className="text-gray-600 text-xl">🎤</Text>
+                <Mic size={24} color="#6B7280" />
               </TouchableOpacity>
               
               <TextInput
-                className="flex-1 bg-white rounded-2xl px-4 py-3 text-blue-900 shadow-sm border border-blue-100 min-h-[48px]"
+                style={styles.textInput}
                 placeholder="メッセージを入力..."
-                placeholderTextColor="#93C5FD"
+                placeholderTextColor="#9CA3AF"
                 value={input}
                 onChangeText={setInput}
                 onSubmitEditing={() => handleSendMessage(input)}
-                multiline
-                autoFocus
+                returnKeyType="send"
               />
               
               <TouchableOpacity 
                 onPress={() => handleSendMessage(input)}
-                className="h-12 w-12 rounded-full bg-blue-500 items-center justify-center shadow-md"
-                disabled={isThinking}
+                style={[
+                    styles.sendButton, 
+                    input.trim().length === 0 && styles.sendButtonDisabled
+                ]}
+                disabled={input.trim().length === 0 || isThinking}
               >
-                <Text className="text-white text-xl">➤</Text>
+                <Send size={20} color="white" />
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={() => setShowChatHistory(true)}
+                style={{ marginLeft: 8, padding: 4 }}
+              >
+                <MessageCircle size={24} color="#6B7280" />
               </TouchableOpacity>
             </View>
-          </KeyboardAvoidingView>
-        ) : (
-          // Voice Input Mode (Default)
-          <View className="items-center">
-            <View className="flex-row items-center gap-6">
-              {/* Switch to Text Input */}
+          ) : (
+            // Voice Input Mode
+            <View style={styles.voiceInputContainer}>
               <TouchableOpacity 
                 onPress={() => setShowTextInput(true)}
-                className="h-12 w-12 rounded-full bg-white/80 items-center justify-center shadow-sm"
+                style={styles.modeSwitchButtonSecondary}
               >
-                <Text className="text-blue-600 text-xl">⌨️</Text>
+                <Keyboard size={24} color="#6B7280" />
               </TouchableOpacity>
 
-              {/* Main Voice Button */}
-              <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-                <TouchableOpacity 
-                  onPress={handleVoicePress}
-                  onLongPress={() => setIsRecording(true)}
-                  onPressOut={() => isRecording && setIsRecording(false)}
-                  className={`h-20 w-20 rounded-full items-center justify-center shadow-lg ${
-                    isRecording ? 'bg-red-500' : 'bg-blue-500'
-                  }`}
-                >
-                  <Text className="text-white text-3xl">
-                    {isRecording ? '⏹' : '🎤'}
-                  </Text>
-                </TouchableOpacity>
-              </Animated.View>
-
-              {/* Placeholder for symmetry */}
-              <View className="h-12 w-12" />
-            </View>
-            
-            <Text className="text-blue-400 text-xs mt-3">
-              {isRecording ? 'タップで停止' : 'タップして話す'}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Chat History Modal */}
-      <Modal
-        visible={showChatHistory}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowChatHistory(false)}
-      >
-        <View className="flex-1 bg-black/50">
-          <TouchableOpacity 
-            className="h-1/4" 
-            onPress={() => setShowChatHistory(false)} 
-          />
-          
-          <View className="flex-1 bg-white rounded-t-3xl">
-            {/* Modal Header */}
-            <View className="flex-row items-center justify-between p-4 border-b border-gray-100">
-              <Text className="text-lg font-bold text-blue-900">チャット履歴</Text>
-              <TouchableOpacity onPress={() => setShowChatHistory(false)}>
-                <Text className="text-blue-500 font-bold">閉じる</Text>
-              </TouchableOpacity>
-            </View>
-            
-            {/* Messages */}
-            <ScrollView className="flex-1 p-4">
-              {messages.map((msg) => (
-                <View 
-                  key={msg.id} 
-                  className={`flex-row mb-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {msg.role === 'assistant' && (
-                    <View className="h-8 w-8 rounded-full bg-blue-100 items-center justify-center mr-2">
-                      <Text className="text-blue-500 font-bold text-xs">S</Text>
-                    </View>
-                  )}
-                  <View 
-                    className={`rounded-2xl px-4 py-2 max-w-[80%] ${
-                      msg.role === 'user' 
-                        ? 'bg-blue-500 rounded-br-none' 
-                        : 'bg-gray-100 rounded-bl-none'
-                    }`}
+              <View style={styles.voiceButtonWrapper}>
+                  <Animated.View 
+                      style={[
+                          styles.pulseRing, 
+                          { transform: [{ scale: pulseAnim }], opacity: isRecording ? 1 : 0 }
+                      ]} 
+                  />
+                  <Pressable 
+                    onPressIn={startRecording}
+                    onPressOut={stopRecording}
+                    style={({pressed}) => [
+                      styles.voiceButton,
+                      pressed && styles.voiceButtonPressed,
+                      isRecording && styles.voiceButtonRecording
+                    ]}
                   >
-                    <Text className={msg.role === 'user' ? 'text-white' : 'text-gray-800'}>
-                      {msg.content}
-                    </Text>
+                   <Mic size={32} color="white" />
+                  </Pressable>
+              </View>
+
+              <TouchableOpacity 
+                onPress={() => setShowChatHistory(true)}
+                style={styles.historyButtonSecondary}
+              >
+                <MessageCircle size={24} color="#6B7280" />
+              </TouchableOpacity>
+              
+              <Text style={styles.voiceHint}>
+                {isRecording ? '離して送信' : '押しながら話す'}
+              </Text>
+            </View>
+          )}
+        </KeyboardAvoidingView>
+
+        {/* Chat History Modal */}
+        <Modal
+          visible={showChatHistory}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowChatHistory(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <Pressable style={styles.modalDismissArea} onPress={() => setShowChatHistory(false)} />
+            
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>History</Text>
+                <TouchableOpacity onPress={() => setShowChatHistory(false)} style={styles.closeButton}>
+                  <X size={24} color="#6B7280" />
+                </TouchableOpacity>
+              </View>
+              
+              <ScrollView 
+                  style={styles.messagesList}
+                  contentContainerStyle={styles.messagesListContent}
+              >
+                {messages.map((msg) => (
+                  <View 
+                    key={msg.id} 
+                    style={[
+                        styles.messageRow, 
+                        msg.role === 'user' ? styles.messageRowUser : styles.messageRowAssistant
+                    ]}
+                  >
+                    {msg.role === 'assistant' && (
+                      <View style={styles.avatarSmall}>
+                          <View style={styles.avatarOnlineDot} />
+                          <Text style={styles.avatarText}>S</Text>
+                      </View>
+                    )}
+                    <View 
+                      style={[
+                        styles.messageBubble,
+                        msg.role === 'user' ? styles.messageBubbleUser : styles.messageBubbleAssistant
+                      ]}
+                    >
+                      <Text style={[
+                          styles.messageText,
+                          msg.role === 'user' ? styles.messageTextUser : styles.messageTextAssistant
+                      ]}>
+                        {msg.content}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              ))}
-              {isThinking && (
-                <View className="flex-row justify-start mb-3">
-                  <View className="h-8 w-8 rounded-full bg-blue-100 items-center justify-center mr-2">
-                    <Text className="text-blue-500 font-bold text-xs">S</Text>
+                ))}
+                {isThinking && (
+                  <View style={styles.messageRowAssistant}>
+                     <View style={styles.avatarSmall}>
+                          <Text style={styles.avatarText}>S</Text>
+                     </View>
+                     <View style={styles.typingIndicator}>
+                          <View style={styles.typingDot} />
+                          <View style={[styles.typingDot, { marginHorizontal: 4 }]} />
+                          <View style={styles.typingDot} />
+                     </View>
                   </View>
-                  <View className="bg-gray-100 rounded-2xl rounded-bl-none px-4 py-2">
-                    <Text className="text-gray-500">考え中...</Text>
-                  </View>
-                </View>
-              )}
-            </ScrollView>
+                )}
+              </ScrollView>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+        </Modal>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 40,
+    left: 20,
+    right: 20,
+    zIndex: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  headerIcon: {
+    fontSize: 20,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  titleIcon: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#10B981', // emerald-500
+    marginRight: 6,
+  },
+  onlineIndicator: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 4,
+    backgroundColor: '#10B981',
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  characterArea: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderContainer: {
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 48,
+    fontWeight: '800',
+    color: '#E5E7EB',
+    letterSpacing: 2,
+  },
+  placeholderRing: {
+    marginTop: 20,
+    width: 120,
+    height: 12,
+    borderRadius: 50,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  floatingMessageContainer: {
+    position: 'absolute',
+    bottom: 180,
+    left: 20,
+    right: 20,
+    alignItems: 'center',
+  },
+  floatingMessageContent: {
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
+    maxWidth: '90%',
+  },
+  messageTriangle: {
+    position: 'absolute',
+    bottom: -8,
+    left: '50%',
+    marginLeft: -8,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 8,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: 'rgba(255,255,255,0.95)',
+  },
+  floatingMessageText: {
+    fontSize: 16,
+    color: '#1F2937',
+    textAlign: 'center',
+    lineHeight: 24,
+    fontWeight: '500',
+  },
+  bottomControls: {
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+    paddingHorizontal: 20,
+  },
+  textInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 30,
+    padding: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  modeSwitchButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+  },
+  textInput: {
+    flex: 1,
+    height: 44,
+    fontSize: 16,
+    paddingHorizontal: 12,
+    color: '#1F2937',
+  },
+  sendButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#3B82F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sendButtonDisabled: {
+    backgroundColor: '#D1D5DB',
+  },
+  voiceInputContainer: {
+    alignItems: 'center',
+    position: 'relative',
+    height: 120, // ensure space for large button
+    justifyContent: 'center',
+  },
+  modeSwitchButtonSecondary: {
+    position: 'absolute',
+    left: 20,
+    bottom: 30,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  historyButtonSecondary: {
+    position: 'absolute',
+    right: 20,
+    bottom: 30,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  voiceButtonWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 80,
+    height: 80,
+  },
+  voiceButton: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#3B82F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+    zIndex: 2,
+  },
+  voiceButtonPressed: {
+    transform: [{ scale: 0.95 }],
+  },
+  voiceButtonRecording: {
+    backgroundColor: '#EF4444',
+    shadowColor: '#EF4444',
+  },
+  pulseRing: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#FCA5A5', // light red
+    zIndex: 1,
+  },
+
+  voiceHint: {
+    position: 'absolute',
+    bottom: 0,
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modalDismissArea: {
+    flex: 1,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    height: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  messagesList: {
+    flex: 1,
+  },
+  messagesListContent: {
+    padding: 20,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    alignItems: 'flex-end',
+  },
+  messageRowUser: {
+    justifyContent: 'flex-end',
+  },
+  messageRowAssistant: {
+    justifyContent: 'flex-start',
+  },
+  avatarSmall: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#E0F2FE',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+    position: 'relative',
+  },
+  avatarOnlineDot: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#10B981',
+    borderWidth: 2,
+    borderColor: 'white',
+  },
+  avatarText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#3B82F6',
+  },
+  messageBubble: {
+    maxWidth: '80%',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  messageBubbleUser: {
+    backgroundColor: '#3B82F6',
+    borderBottomRightRadius: 4,
+  },
+  messageBubbleAssistant: {
+    backgroundColor: '#F3F4F6',
+    borderBottomLeftRadius: 4,
+  },
+  messageText: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  messageTextUser: {
+    color: 'white',
+  },
+  messageTextAssistant: {
+    color: '#1F2937',
+  },
+  typingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 20,
+    borderBottomLeftRadius: 4,
+  },
+  typingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#9CA3AF',
+  },
+});
