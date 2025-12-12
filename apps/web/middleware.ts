@@ -3,7 +3,9 @@ import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 
 // Routes that don't require authentication
-const publicRoutes = ['/welcome', '/login', '/signup', '/api/auth'];
+// Note: /api/profile is included because mobile apps use Authorization header, not cookies.
+// The profile route handles its own auth check internally.
+const publicRoutes = ['/welcome', '/login', '/signup', '/api/auth', '/api/profile'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

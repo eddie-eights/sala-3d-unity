@@ -27,6 +27,13 @@ export const auth = betterAuth({
             clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
         }
     },
+    trustedOrigins: [
+        "http://localhost:3000",
+        "http://localhost:8081",
+        "http://192.168.3.53:3000",
+        "http://192.168.3.53:8081",
+        "exp://192.168.3.53:8081",
+    ],
     plugins: [
         nextCookies(),
         passkey({

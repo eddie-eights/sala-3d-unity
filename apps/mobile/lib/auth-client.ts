@@ -235,6 +235,11 @@ export const authClient = {
     }
     await storage.removeItem(SESSION_KEY);
   },
+
+  // Get stored token for API requests
+  async getToken(): Promise<string | null> {
+    return await storage.getItem(SESSION_KEY);
+  },
 };
 
 export default authClient;

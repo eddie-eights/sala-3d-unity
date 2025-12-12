@@ -124,7 +124,7 @@ export default function ChatScreen() {
         <Text className="text-blue-900 font-bold text-lg">Sala</Text>
         
         <TouchableOpacity 
-          onPress={() => router.push('/settings')}
+          onPress={() => router.push('/mypage')}
           className="h-10 w-10 rounded-full bg-white/80 items-center justify-center shadow-sm"
         >
           <Text className="text-blue-600 font-bold text-lg">⚙️</Text>
