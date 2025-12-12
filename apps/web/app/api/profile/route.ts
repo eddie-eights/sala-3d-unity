@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: Request) {
     const session = await auth.api.getSession({
         headers: headers()
     });
@@ -50,10 +50,8 @@ export async function PUT(req: Request) {
         }).where(eq(users.id, session.user.id));
 
         return NextResponse.json({ success: true });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((e as any).code === '23505') { // Postgres unique violation for username
+        if (e.code === '23505') { // Postgres unique violation for username
              return NextResponse.json({ error: "Username already taken" }, { status: 400 });
         }
         return NextResponse.json({ error: "Failed to update profile", details: e.message }, { status: 500 });

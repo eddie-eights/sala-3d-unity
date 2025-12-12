@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Mic, Minimize2, Maximize2, Home, Loader2 } from "lucide-react";
+import { Send, Sparkles, Mic, MicOff, Minimize2, Maximize2, Home, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -59,7 +60,7 @@ export default function ChatPage() {
   ]);
   const [isFloating, setIsFloating] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
-  const [, setIsSpeaking] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   // Input ref for uncontrolled input (fixes Japanese IME issues)
   const inputRef = useRef<HTMLInputElement>(null);
@@ -201,7 +202,7 @@ export default function ChatPage() {
   // Listen for custom submit-input event (dispatched by Ctrl+Enter handler in useUnity)
   useEffect(() => {
     // Register global submit function for Ctrl+Enter
-    window._submitChatInput = () => {
+    (window as any)._submitChatInput = () => {
       const text = inputRef.current?.value || '';
       if (text.trim()) {
         handleSend(text);
@@ -209,7 +210,7 @@ export default function ChatPage() {
     };
     
     return () => {
-      window._submitChatInput = undefined;
+      delete (window as any)._submitChatInput;
     };
   }, [handleSend]);
 

@@ -11,8 +11,8 @@ if (typeof window !== 'undefined') {
       // Handle Ctrl+Enter or Cmd+Enter for form submission
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         // Call global submit function if available
-        if (window._submitChatInput) {
-          window._submitChatInput();
+        if ((window as any)._submitChatInput) {
+          (window as any)._submitChatInput();
         }
       }
       e.stopImmediatePropagation();
@@ -26,6 +26,33 @@ if (typeof window !== 'undefined') {
   document.addEventListener('keydown', preventUnityKeyboardCapture, { capture: true });
   document.addEventListener('keyup', preventUnityKeyboardCapture, { capture: true });
   document.addEventListener('keypress', preventUnityKeyboardCapture, { capture: true });
+}
+
+declare global {
+  interface Window {
+    createUnityInstance: (
+      canvas: HTMLCanvasElement,
+      config: UnityConfig,
+      onProgress?: (progress: number) => void
+    ) => Promise<UnityInstance>;
+    dispatchReactUnityEvent?: (eventName: string, data?: any) => void;
+  }
+}
+
+interface UnityConfig {
+  dataUrl: string;
+  frameworkUrl: string;
+  codeUrl: string;
+  streamingAssetsUrl?: string;
+  companyName?: string;
+  productName?: string;
+  productVersion?: string;
+}
+
+interface UnityInstance {
+  SendMessage: (objectName: string, methodName: string, value?: string | number) => void;
+  Quit: () => Promise<void>;
+  SetFullscreen: (fullscreen: boolean) => void;
 }
 
 interface UseUnityOptions {
@@ -66,10 +93,10 @@ export function useUnity(options: UseUnityOptions = {}) {
           onCharacterFinishedSpeaking?.();
           break;
         case 'OnCharacterStateChanged':
-          onCharacterStateChanged?.(data as string);
+          onCharacterStateChanged?.(data);
           break;
         case 'OnAudioProgress':
-          onAudioProgress?.(data as number);
+          onAudioProgress?.(data);
           break;
         default:
           console.log(`Unity event: ${eventName}`, data);
@@ -90,7 +117,7 @@ export function useUnity(options: UseUnityOptions = {}) {
       resumed = true;
       
       // Resume all AudioContext instances
-      const audioContexts = window.AudioContext || window.webkitAudioContext;
+      const audioContexts = (window as any).AudioContext || (window as any).webkitAudioContext;
       if (audioContexts) {
         // Try to resume any existing audio contexts
         const allContexts = document.querySelectorAll('canvas');
@@ -193,10 +220,8 @@ export function useUnity(options: UseUnityOptions = {}) {
         
         // IMPORTANT: Disable Unity's keyboard capture so HTML inputs work
         // Unity WebGL captures all keyboard input by default, which breaks HTML forms
-        // IMPORTANT: Disable Unity's keyboard capture so HTML inputs work
-        // Unity WebGL captures all keyboard input by default, which breaks HTML forms
-        if (instance.Module?.WebGLInput) {
-          instance.Module.WebGLInput.captureAllKeyboardInput = false;
+        if ((instance as any).Module?.WebGLInput) {
+          (instance as any).Module.WebGLInput.captureAllKeyboardInput = false;
         }
         
         setIsLoading(false);

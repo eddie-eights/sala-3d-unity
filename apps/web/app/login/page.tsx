@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, KeyRound, Mail, Sparkles, Eye, EyeOff, Fingerprint } from 'lucide-react';
+import { ChevronLeft, KeyRound, Mail, Sparkles, User, Eye, EyeOff, Fingerprint } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -27,7 +27,6 @@ export default function LoginPage() {
         password,
     }, {
         onSuccess: () => router.push('/chat'),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (ctx: any) => {
             alert(ctx.error.message);
             setLoading(false);
@@ -44,7 +43,6 @@ export default function LoginPage() {
         name: email.split("@")[0] || "User", // Default name
     }, {
         onSuccess: () => router.push('/mypage'),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (ctx: any) => {
             alert(ctx.error.message);
             setLoading(false);
@@ -63,7 +61,6 @@ export default function LoginPage() {
     try {
         await authClient.signIn.passkey();
         router.push('/chat');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
         alert(e.message || "Failed to sign in with Passkey");
     }
