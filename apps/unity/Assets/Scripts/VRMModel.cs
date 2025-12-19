@@ -101,9 +101,8 @@ public class VRMModel : MonoBehaviour
             {
                 if (renderer.sharedMesh != null && renderer.sharedMesh.blendShapeCount > 0)
                 {
-                        faceRenderer = renderer;
-                        break;
-                    }
+                    faceRenderer = renderer;
+                    break;
                 }
             }
         }
