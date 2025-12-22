@@ -1,50 +1,103 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// TTS Server URL (FastAPI with VOICEVOX)
+const TTS_SERVER_URL = process.env.TTS_SERVER_URL || 'http://localhost:8000';
+
+// v1 TTS Request/Response types
+interface TtsRequest {
+  text: string;
+  speaker_id?: number;
+  style?: {
+    speed?: number;
+    pitch?: number;
+    intonation?: number;
+    volume?: number;
+  };
+  timing?: {
+    format?: string;
+    include_phonemes?: boolean;
+  };
+  client?: {
+    sample_rate?: number;
+  };
+}
+
+interface VisemeEvent {
+  t: number;
+  v: string;
+  w: number;
+}
+
+interface PhonemeEvent {
+  t0: number;
+  t1: number;
+  p: string;
+}
+
+interface TtsResponseV1 {
+  version: string;
+  request_id: string;
+  audio: {
+    format: string;
+    sample_rate: number;
+    channels: number;
+    duration_sec: number;
+    base64?: string;
+    url?: string;
+  };
+  timing: {
+    timebase: string;
+    visemes: VisemeEvent[];
+    phonemes?: PhonemeEvent[];
+  };
+  meta: {
+    engine: string;
+    speaker_id: number;
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { text } = await request.json() as { text: string };
+    const body = await request.json() as TtsRequest;
 
-    if (!text) {
+    if (!body.text) {
       return NextResponse.json(
         { error: 'Text is required' },
         { status: 400 }
       );
     }
 
-    const response = await openai.audio.speech.create({
-      model: 'tts-1',
-      voice: 'nova', // Female voice, good for Japanese
-      input: text,
-      speed: 1.0,
-      response_format: 'pcm', // Raw PCM audio for Unity
-    });
-
-    // Get audio as ArrayBuffer
-    const audioBuffer = await response.arrayBuffer();
-
-    // Return as audio/pcm (raw 24kHz 16-bit mono PCM)
-    return new NextResponse(audioBuffer, {
-      status: 200,
+    // Call TTS server v1 API
+    const ttsResponse = await fetch(`${TTS_SERVER_URL}/v1/tts`, {
+      method: 'POST',
       headers: {
-        'Content-Type': 'audio/pcm',
-        'Content-Length': audioBuffer.byteLength.toString(),
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        text: body.text,
+        speaker_id: body.speaker_id ?? 1,
+        style: body.style,
+        timing: body.timing ?? { format: 'viseme', include_phonemes: true },
+        client: body.client,
+      }),
     });
+
+    if (!ttsResponse.ok) {
+      const error = await ttsResponse.text();
+      console.error('TTS Server error:', error);
+      return NextResponse.json(
+        { error: `TTS Server error: ${error}` },
+        { status: ttsResponse.status }
+      );
+    }
+
+    const data: TtsResponseV1 = await ttsResponse.json();
+
+    // Return TtsResponseV1 directly
+    return NextResponse.json(data);
 
   } catch (error) {
     console.error('TTS API error:', error);
-    
-    if (error instanceof OpenAI.APIError) {
-      return NextResponse.json(
-        { error: `OpenAI API error: ${error.message}` },
-        { status: error.status || 500 }
-      );
-    }
 
     return NextResponse.json(
       { error: 'Failed to generate speech' },

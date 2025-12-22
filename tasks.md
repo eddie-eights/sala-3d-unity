@@ -103,6 +103,28 @@
 
 ---
 
+## Phase 4.5: TTS Server (Viseme Timing)
+
+_New architecture: Server-side viseme timing for accurate lip sync_
+
+- [x] TTS Server Setup (`apps/tts-server/`)
+  - [x] FastAPI + Python 3.13 + uv
+  - [x] VOICEVOX Engine integration (Docker)
+  - [x] POST `/v1/tts` endpoint
+  - [x] Phoneme → Viseme (A/I/U/E/O/sil) conversion
+  - [x] TTS Provider abstraction (for future model swap)
+  - [x] Concurrent request limiting (asyncio.Semaphore)
+- [x] Docker Environment
+  - [x] `docker-compose.yml` (voicevox + tts-server)
+  - [x] ARM64 VOICEVOX image for Mac
+- [x] Unity LipSync Update
+  - [x] `LipSyncController.cs` - TimingBased mode
+  - [x] `VisemeData.cs` - v1 DTO
+  - [x] Support for viseme events from TTS server
+- [x] Next.js API Update
+  - [x] `/api/text-to-speech` → TTS Server proxy
+- [ ] Future: Custom TTS model (VITS/RVC) integration
+
 ## Phase 5: Unity × Mobile Coordination
 
 - [ ] iOS / Android Build Settings

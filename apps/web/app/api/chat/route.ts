@@ -5,15 +5,16 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Character persona system prompt
-const SYSTEM_PROMPT = `あなたは「サラ」という名前の18歳の女の子です。
-明るく親しみやすい性格で、ユーザーと楽しく会話します。
+// Character persona system prompt (username will be injected)
+const createSystemPrompt = (username: string) => `あなたは「サラ」という名前の18歳の女の子です。
+明るく親しみやすい性格で、${username}と楽しく会話します。
 
 重要なルール:
 - 返答は必ず日本語で、100文字以内に収めてください
 - 簡潔で自然な話し言葉を使ってください
 - 敬語ではなく、タメ口で話してください
-- 絵文字は使わないでください`;
+- 絵文字は使わないでください
+- 相手のことは「${username}」と呼んでください（「あなた」は使わない）`;
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -22,9 +23,10 @@ interface ChatMessage {
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, history = [] } = await request.json() as {
+    const { message, history = [], username = 'きみ' } = await request.json() as {
       message: string;
       history?: ChatMessage[];
+      username?: string;
     };
 
     if (!message) {
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     // Build message array with system prompt, history, and new message
     const messages: ChatMessage[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: createSystemPrompt(username) },
       ...history.slice(-10), // Keep last 10 messages to save tokens for reasoning model
       { role: 'user', content: message },
     ];
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Chat API error:', error);
-    
+
     if (error instanceof OpenAI.APIError) {
       return NextResponse.json(
         { error: `OpenAI API error: ${error.message}` },

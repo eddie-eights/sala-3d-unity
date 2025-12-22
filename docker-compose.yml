@@ -1,0 +1,44 @@
+services:
+  # VOICEVOX Engine (internal only - not exposed to clients)
+  voicevox:
+    image: voicevox/voicevox_engine:cpu-arm64-ubuntu24.04-latest
+    # ports: commented out - internal access only via tts-server
+    # - "50021:50021"  # Uncomment for debugging only
+    expose:
+      - "50021"
+    # ARM64 image uses different python path
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/voicevox_engine/run --help > /dev/null || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 300s
+
+  # TTS Server - Official API (FastAPI)
+  # Wraps VOICEVOX/future PyTorch models
+  tts-server:
+    build: ./apps/tts-server
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./apps/tts-server:/app # Hot reload: source changes auto-reflected
+    environment:
+      - VOICEVOX_URL=http://voicevox:50021
+      - DEFAULT_SPEAKER_ID=1
+      - TTS_PROVIDER=voicevox
+    depends_on:
+      voicevox:
+        condition: service_started
+    command: uv run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+# Network: tts-server can access voicevox internally
+# Clients only access tts-server:8000
+
+# NOTE: For development, run web locally with:
+#   pnpm --filter web dev
+# Set TTS_SERVER_URL=http://localhost:8000 in .env.local

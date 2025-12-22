@@ -1,10 +1,10 @@
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// LipSyncController provides audio-driven mouth animation.
-/// Works with both amplitude-based simple lip sync and phoneme-based systems.
-/// Can integrate with uLipSync if installed.
+/// Supports amplitude-based, timing-based (viseme events), and manual modes.
 /// </summary>
 public class LipSyncController : MonoBehaviour
 {
@@ -17,9 +17,13 @@ public class LipSyncController : MonoBehaviour
     [Header("Lip Sync Settings")]
     [SerializeField] private LipSyncMode mode = LipSyncMode.AmplitudeBased;
     [SerializeField] [Range(0.1f, 5f)] private float sensitivity = 2f;
-    [SerializeField] [Range(0.01f, 0.5f)] private float smoothing = 0.02f; // Much lower for faster response
+    [SerializeField] [Range(0.01f, 0.5f)] private float smoothing = 0.02f;
     [SerializeField] [Range(0f, 1f)] private float minOpenness = 0f;
     [SerializeField] [Range(0f, 1f)] private float maxOpenness = 1f;
+
+    [Header("Timing Mode Settings")]
+    [SerializeField] [Range(0.01f, 0.2f)] private float attackTime = 0.05f;
+    [SerializeField] [Range(0.01f, 0.3f)] private float releaseTime = 0.1f;
 
     [Header("Amplitude Mode Settings")]
     [SerializeField] private bool useRandomVowels = true;
@@ -27,9 +31,20 @@ public class LipSyncController : MonoBehaviour
 
     public enum LipSyncMode
     {
-        AmplitudeBased,  // Simple amplitude-based (default)
+        AmplitudeBased,  // Simple amplitude-based (fallback)
+        TimingBased,     // Uses viseme timing from TTS server
         ULipSync,        // Uses uLipSync library
         Manual           // Controlled externally
+    }
+
+    // Viseme event from TTS server
+    [System.Serializable]
+    public class VisemeEvent
+    {
+        public float t;  // time in seconds
+        public string v; // viseme: A/I/U/E/O/X
+        public float w;  // weight 0-1
+        public float d;  // duration (optional)
     }
 
     // Current mouth weights
@@ -41,6 +56,19 @@ public class LipSyncController : MonoBehaviour
     private int currentVowelIndex = 0;
 
     private bool isActive = false;
+
+    // Timing-based mode data
+    private List<VisemeEvent> visemeEvents = new List<VisemeEvent>();
+    private int currentEventIndex = 0;
+    private float audioStartTime = 0f;
+
+    // Vowel to index mapping
+    // A=0, I=1, U=2, E=3, O=4, X/sil/N = -1 (closed mouth)
+    private static readonly Dictionary<string, int> VowelToIndex = new Dictionary<string, int>
+    {
+        {"A", 0}, {"I", 1}, {"U", 2}, {"E", 3}, {"O", 4}, 
+        {"X", -1}, {"sil", -1}, {"N", -1}
+    };
 
     private void Awake()
     {
@@ -57,11 +85,9 @@ public class LipSyncController : MonoBehaviour
 
     private void Start()
     {
-        // Auto-find references if not assigned
         if (vrmModel == null) vrmModel = VRMModel.Instance;
         if (audioManager == null) audioManager = AudioManager.Instance;
 
-        // Subscribe to audio events
         if (audioManager != null)
         {
             audioManager.OnAudioStarted += OnAudioStarted;
@@ -78,49 +104,76 @@ public class LipSyncController : MonoBehaviour
         }
     }
 
-    // Use LateUpdate to apply lip sync AFTER animation updates
-    // This prevents animations from overriding our blendshape changes
     private void LateUpdate()
     {
         if (!isActive || vrmModel == null) return;
 
-        if (mode == LipSyncMode.AmplitudeBased)
+        switch (mode)
         {
-            UpdateAmplitudeBasedLipSync();
+            case LipSyncMode.TimingBased:
+                UpdateTimingBasedLipSync();
+                break;
+            case LipSyncMode.AmplitudeBased:
+                UpdateAmplitudeBasedLipSync();
+                break;
+            // ULipSync and Manual handled externally
         }
-        // ULipSync mode is handled by uLipSync directly
-        // Manual mode is controlled externally
     }
 
-    private void UpdateAmplitudeBasedLipSync()
+    /// <summary>
+    /// Set viseme events from TTS server response.
+    /// Call this before playing audio.
+    /// </summary>
+    public void SetVisemeEvents(List<VisemeEvent> events)
     {
-
-
-        // Get current audio amplitude
-        float rawAmplitude = 0f;
-        if (audioManager != null)
+        visemeEvents = events ?? new List<VisemeEvent>();
+        currentEventIndex = 0;
+        
+        // Automatically switch to timing-based mode if events are provided
+        if (visemeEvents.Count > 0)
         {
-            rawAmplitude = audioManager.GetCurrentAmplitude();
+            mode = LipSyncMode.TimingBased;
         }
         else
         {
-            Debug.LogWarning("LipSync: audioManager is null!");
+            mode = LipSyncMode.AmplitudeBased;
         }
+    }
 
-        // Smooth amplitude
-        currentAmplitude = Mathf.Lerp(currentAmplitude, rawAmplitude * sensitivity, Time.deltaTime / smoothing);
-        currentAmplitude = Mathf.Clamp01(currentAmplitude);
-
-
-
-        // Map to mouth openness
-        float openness = Mathf.Lerp(minOpenness, maxOpenness, currentAmplitude);
-
-        // Random vowel selection for more natural look
-        if (useRandomVowels && Time.time > nextVowelChangeTime && openness > 0.1f)
+    /// <summary>
+    /// Set viseme events from JSON string.
+    /// </summary>
+    public void SetVisemeEventsFromJson(string json)
+    {
+        try
         {
-            currentVowelIndex = UnityEngine.Random.Range(0, 5);
-            nextVowelChangeTime = Time.time + vowelChangeRate;
+            var wrapper = JsonUtility.FromJson<VisemeEventListWrapper>("{\"events\":" + json + "}");
+            SetVisemeEvents(wrapper.events);
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"LipSync: Failed to parse viseme events: {e.Message}");
+            SetVisemeEvents(null);
+        }
+    }
+
+    [Serializable]
+    private class VisemeEventListWrapper
+    {
+        public List<VisemeEvent> events;
+    }
+
+    private void UpdateTimingBasedLipSync()
+    {
+        if (audioManager == null || !audioManager.IsPlaying) return;
+
+        float currentTime = audioManager.GetAudioSource().time;
+
+        // Find current event based on audio time
+        while (currentEventIndex < visemeEvents.Count - 1 &&
+               visemeEvents[currentEventIndex + 1].t <= currentTime)
+        {
+            currentEventIndex++;
         }
 
         // Reset targets
@@ -129,23 +182,32 @@ public class LipSyncController : MonoBehaviour
             targetWeights[i] = 0f;
         }
 
-        // Set target for current vowel
-        if (openness > 0.05f)
+        // Apply current viseme
+        if (currentEventIndex < visemeEvents.Count)
         {
-            targetWeights[currentVowelIndex] = openness;
+            var evt = visemeEvents[currentEventIndex];
             
-            // Add some secondary movement for naturalness
-            if (useRandomVowels)
+            if (VowelToIndex.TryGetValue(evt.v, out int vowelIdx) && vowelIdx >= 0)
             {
-                int secondaryVowel = (currentVowelIndex + 2) % 5;
-                targetWeights[secondaryVowel] = openness * 0.3f;
+                targetWeights[vowelIdx] = evt.w;
             }
+            // X (closed mouth) = all weights 0
         }
 
-        // Smooth interpolation
+        // Smooth interpolation with attack/release
+        float lerpSpeed = Time.deltaTime / attackTime;
         for (int i = 0; i < 5; i++)
         {
-            currentWeights[i] = Mathf.Lerp(currentWeights[i], targetWeights[i], Time.deltaTime / smoothing);
+            if (targetWeights[i] > currentWeights[i])
+            {
+                // Attack
+                currentWeights[i] = Mathf.Lerp(currentWeights[i], targetWeights[i], lerpSpeed);
+            }
+            else
+            {
+                // Release (slower)
+                currentWeights[i] = Mathf.Lerp(currentWeights[i], targetWeights[i], Time.deltaTime / releaseTime);
+            }
         }
 
         // Apply to VRM model
@@ -158,33 +220,81 @@ public class LipSyncController : MonoBehaviour
         );
     }
 
+    private void UpdateAmplitudeBasedLipSync()
+    {
+        float rawAmplitude = 0f;
+        if (audioManager != null)
+        {
+            rawAmplitude = audioManager.GetCurrentAmplitude();
+        }
+
+        currentAmplitude = Mathf.Lerp(currentAmplitude, rawAmplitude * sensitivity, Time.deltaTime / smoothing);
+        currentAmplitude = Mathf.Clamp01(currentAmplitude);
+
+        float openness = Mathf.Lerp(minOpenness, maxOpenness, currentAmplitude);
+
+        if (useRandomVowels && Time.time > nextVowelChangeTime && openness > 0.1f)
+        {
+            currentVowelIndex = UnityEngine.Random.Range(0, 5);
+            nextVowelChangeTime = Time.time + vowelChangeRate;
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+            targetWeights[i] = 0f;
+        }
+
+        if (openness > 0.05f)
+        {
+            targetWeights[currentVowelIndex] = openness;
+            
+            if (useRandomVowels)
+            {
+                int secondaryVowel = (currentVowelIndex + 2) % 5;
+                targetWeights[secondaryVowel] = openness * 0.3f;
+            }
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+            currentWeights[i] = Mathf.Lerp(currentWeights[i], targetWeights[i], Time.deltaTime / smoothing);
+        }
+
+        vrmModel.SetMouthWeights(
+            currentWeights[0],
+            currentWeights[1],
+            currentWeights[2],
+            currentWeights[3],
+            currentWeights[4]
+        );
+    }
+
     private void OnAudioStarted()
     {
         isActive = true;
+        currentEventIndex = 0;
+        audioStartTime = Time.time;
     }
 
     private void OnAudioFinished()
     {
         isActive = false;
         
-        // Reset mouth to closed
         if (vrmModel != null)
         {
             vrmModel.ResetMouth();
         }
         
-        // Reset weights
         for (int i = 0; i < 5; i++)
         {
             currentWeights[i] = 0f;
             targetWeights[i] = 0f;
         }
         
+        visemeEvents.Clear();
+        currentEventIndex = 0;
     }
 
-    /// <summary>
-    /// Manually set mouth weights (for Manual mode or external control).
-    /// </summary>
     public void SetMouthWeights(float a, float i, float u, float e, float o)
     {
         if (mode != LipSyncMode.Manual && mode != LipSyncMode.ULipSync) return;
@@ -195,17 +305,11 @@ public class LipSyncController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Start lip sync manually (for testing or external trigger).
-    /// </summary>
     public void StartLipSync()
     {
         isActive = true;
     }
 
-    /// <summary>
-    /// Stop lip sync manually.
-    /// </summary>
     public void StopLipSync()
     {
         isActive = false;
@@ -215,11 +319,13 @@ public class LipSyncController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Set lip sync mode at runtime.
-    /// </summary>
     public void SetMode(LipSyncMode newMode)
     {
         mode = newMode;
+    }
+
+    public LipSyncMode GetCurrentMode()
+    {
+        return mode;
     }
 }
