@@ -22,7 +22,7 @@ from audio_utils import apply_fade_in
 
 
 # Configuration
-VOICEVOX_URL = os.getenv("VOICEVOX_URL", "http://127.0.0.1:50021")
+VOICEVOX_URL = os.getenv("VOICEVOX_URL", "localhost:50021")
 DEFAULT_SPEAKER_ID = int(os.getenv("DEFAULT_SPEAKER_ID", "1"))  # ずんだもん
 TTS_PROVIDER = os.getenv("TTS_PROVIDER", "voicevox")
 MAX_CONCURRENT_REQUESTS = int(os.getenv("MAX_CONCURRENT_REQUESTS", "3"))

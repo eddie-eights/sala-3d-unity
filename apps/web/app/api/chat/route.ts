@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
@@ -14,11 +14,21 @@ const createSystemPrompt = (username: string) => `あなたは「サラ」とい
 - 簡潔で自然な話し言葉を使ってください
 - 敬語ではなく、タメ口で話してください
 - 絵文字は使わないでください
-- 相手のことは「${username}」と呼んでください（「あなた」は使わない）`;
+- 相手のことは「${username}」と呼んでください（「あなた」は使わない）
+- 1〜2文で簡潔に返答してください`;
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
+}
+
+// Split text into sentences (Japanese-aware)
+function splitIntoSentences(text: string): string[] {
+  // Split by Japanese sentence endings: 。！？ or newlines
+  const sentences = text.split(/(?<=[。！？\n])/g)
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
+  return sentences;
 }
 
 export async function POST(request: NextRequest) {
@@ -30,48 +40,87 @@ export async function POST(request: NextRequest) {
     };
 
     if (!message) {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
-      );
+      return new Response(JSON.stringify({ error: 'Message is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Build message array with system prompt, history, and new message
     const messages: ChatMessage[] = [
       { role: 'system', content: createSystemPrompt(username) },
-      ...history.slice(-10), // Keep last 10 messages to save tokens for reasoning model
+      ...history.slice(-10),
       { role: 'user', content: message },
     ];
 
-    const completion = await openai.chat.completions.create({
+    // Use streaming API
+    const stream = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: messages,
-      max_tokens: 150, // No reasoning overhead, 150 is enough for short responses
+      max_tokens: 150,
+      stream: true,
     });
 
-    console.log('OpenAI response:', JSON.stringify(completion, null, 2));
+    // Create a TransformStream to process OpenAI stream -> sentence stream
+    const encoder = new TextEncoder();
+    let buffer: string = '';
 
-    const responseText = completion.choices[0]?.message?.content || '';
-    console.log('Response text:', responseText);
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content || '';
+            buffer += content;
 
-    return NextResponse.json({
-      text: responseText,
-      success: true,
+            // Check for complete sentences
+            const sentences = splitIntoSentences(buffer);
+
+            // If we have more than one sentence, emit all complete ones
+            if (sentences.length > 1) {
+              for (let i = 0; i < sentences.length - 1; i++) {
+                const sentenceData = JSON.stringify({
+                  type: 'sentence',
+                  text: sentences[i]
+                }) + '\n';
+                controller.enqueue(encoder.encode(sentenceData));
+              }
+              // Keep the last incomplete sentence in buffer
+              buffer = sentences[sentences.length - 1] ?? '';
+            }
+          }
+
+          // Emit remaining buffer as final sentence
+          if (buffer.trim()) {
+            const sentenceData = JSON.stringify({
+              type: 'sentence',
+              text: buffer.trim()
+            }) + '\n';
+            controller.enqueue(encoder.encode(sentenceData));
+          }
+
+          // Send done signal
+          controller.enqueue(encoder.encode(JSON.stringify({ type: 'done' }) + '\n'));
+          controller.close();
+        } catch (error) {
+          controller.error(error);
+        }
+      },
+    });
+
+    return new Response(readableStream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked',
+        'Cache-Control': 'no-cache',
+      },
     });
 
   } catch (error) {
     console.error('Chat API error:', error);
 
-    if (error instanceof OpenAI.APIError) {
-      return NextResponse.json(
-        { error: `OpenAI API error: ${error.message}` },
-        { status: error.status || 500 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Failed to generate response' },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: 'Failed to generate response' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }
